@@ -14,6 +14,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// dispatch block
 	switch os.Args[1] {
 	case "init":
 		err := core.InitRepo()
@@ -24,6 +25,7 @@ func main() {
 		fmt.Println("Initialized empty kitkat repository in .kitkat/")
 	
 	case "add":
+		// Enforce: file path is required after `./kitkat add`
 		if len(os.Args) < 3 {
 			fmt.Println("usage: kitkat add <file>")
 			os.Exit(1)
@@ -36,6 +38,7 @@ func main() {
 		fmt.Printf("added %s\n", os.Args[2])
 
 	case "ls-files":
+		// List tracked file paths from index
 		entries, err := storage.LoadIndex()
 		if err != nil {
 			fmt.Println("error:", err)
@@ -45,6 +48,19 @@ func main() {
 			fmt.Println(path)
 	    }
 
+	case "log":
+		if len(os.Args) < 3 {
+			fmt.Println("usage: kitkat log --msg \"your message\"")
+			os.Exit(1)
+		}
+		msg := os.Args[2]
+		err := core.LogMessage(msg)
+		if err != nil {
+			fmt.Println("error:", err)
+			os.Exit(1)
+		}
+		fmt.Println("log saved.")
+		
 	default:
 		fmt.Println("unknown command:", os.Args[1])
 	}
