@@ -8,7 +8,8 @@ import (
 
 const indexPath = ".kitkat/index"
 
-// reads index into map[path]hash
+// LoadIndex reads .kitkat/index and returns a map of path -> hash
+// Handles partial lines defensively
 func LoadIndex() (map[string]string, error) {
 	index := make(map[string]string)
 
@@ -30,7 +31,9 @@ func LoadIndex() (map[string]string, error) {
 	return index, scanner.Err()
 }
 
-// writes full index (de-duplicated)
+
+// WriteIndex overwrites index file with path -> hash entries
+// No merge; full overwrite
 func WriteIndex(index map[string]string) error {
 	f, err := os.Create(indexPath) // overwrite
 	if err != nil {
