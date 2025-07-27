@@ -6,6 +6,7 @@ import (
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
+// ListFiles prints all tracked file paths from the index
 func ListFiles() error {
 	index, err := storage.LoadIndex()
 	if err != nil {
