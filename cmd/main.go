@@ -46,11 +46,11 @@ func main() {
 		}
 		for path := range entries {
 			fmt.Println(path)
-	    }
+		}
 
 	case "log":
 		if len(os.Args) < 3 {
-			fmt.Println("usage: kitkat log --msg \"your message\"")
+			fmt.Println("usage: kitkat log <message>")
 			os.Exit(1)
 		}
 		msg := os.Args[2]
@@ -60,7 +60,27 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("log saved.")
-		
+
+	case "view":
+		err := core.ViewLogs()
+		if err != nil {
+			fmt.Println("error:", err)
+			os.Exit(1)
+		}
+	
+	case "tag":
+		if len(os.Args) < 4 {
+			fmt.Println("Usage: kitkat tag <log-id> <tag>")
+			return
+		}
+		id := os.Args[2]
+		tag := os.Args[3]
+		if err := core.TagLog(id, tag); err != nil {
+			fmt.Println("Error tagging log:", err)
+		} else {
+			fmt.Println("Log tagged successfully")
+		}
+	
 	default:
 		fmt.Println("unknown command:", os.Args[1])
 	}
