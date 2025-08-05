@@ -25,7 +25,6 @@ func main() {
 		fmt.Println("Initialized empty kitkat repository in .kitkat/")
 	
 	case "add":
-		// Enforce: file path is required after `./kitkat add`
 		if len(os.Args) < 3 {
 			fmt.Println("usage: kitkat add <file>")
 			os.Exit(1)
@@ -38,7 +37,6 @@ func main() {
 		fmt.Printf("added %s\n", os.Args[2])
 
 	case "ls-files":
-		// List tracked file paths from index
 		entries, err := storage.LoadIndex()
 		if err != nil {
 			fmt.Println("error:", err)
@@ -80,7 +78,25 @@ func main() {
 		} else {
 			fmt.Println("Log tagged successfully")
 		}
-	
+
+	case "grep":
+		if len(os.Args) < 3 {
+			fmt.Println("Usage: kitkat grep <term>")
+			return
+		}
+		if err := core.GrepLogs(os.Args[2]); err != nil {
+			fmt.Println("Error searching logs:", err)
+		}
+
+	case "ls-tag":
+		if len(os.Args) < 3 {
+			fmt.Println("Usage: kitkat ls-tag <tag>")
+			return
+		}
+		if err := core.ListLogsByTag(os.Args[2]); err != nil {
+			fmt.Println("Error:", err)
+		}
+
 	default:
 		fmt.Println("unknown command:", os.Args[1])
 	}

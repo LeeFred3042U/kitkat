@@ -1,0 +1,26 @@
+# Go build cache
+/bin/
+/build/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go module stuff – keep go.mod/sum (they're source)
+# (So nothing to ignore here)
+
+# Editor & OS noise
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.log
+
+# Personal/text files
+hello.txt
