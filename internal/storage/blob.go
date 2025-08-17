@@ -12,8 +12,8 @@ const (
 	objectsDir = ".kitkat/objects"
 )
 
-// HashAndStoreFile computes SHA-1 hash of file content,
-//  saves it in .kitkat/objects/<hash> if not present
+// HashAndStoreFile computes SHA-1 hash of file content
+// saves it in .kitkat/objects/<hash> if not present
 // Returns a hash string
 func HashAndStoreFile(path string) (string, error) {
 	f, err := os.Open(path)
@@ -43,4 +43,10 @@ func HashAndStoreFile(path string) (string, error) {
 	}
 
 	return hash, nil
+}
+
+// Reads an object from the objects directory
+func ReadObject(hash string) ([]byte, error) {
+	objectPath := filepath.Join(objectsDir, hash)
+	return os.ReadFile(objectPath)
 }

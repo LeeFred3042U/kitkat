@@ -1,23 +1,16 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/models"
+	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-// GrepLogs prints logs
+// Prints logs
 func GrepLogs(term string) error {
-	data, err := os.ReadFile(".kitkat/logs.json")
+	logs, err := storage.ReadLogs()
 	if err != nil {
-		return err
-	}
-
-	var logs []models.LogEntry
-	if err := json.Unmarshal(data, &logs); err != nil {
 		return err
 	}
 

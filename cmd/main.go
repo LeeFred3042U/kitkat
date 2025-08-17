@@ -9,13 +9,25 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("usage: kitkat <command> [args]")
-		os.Exit(1)
+	// Handle help flags
+	if len(os.Args) < 2 || os.Args[1] == "--help" || os.Args[1] == "-h" {
+		core.PrintGeneralHelp()
+		os.Exit(0)
+	}
+
+	command := os.Args[1]
+	if command == "help" {
+		if len(os.Args) < 3 {
+			core.PrintGeneralHelp()
+		} else {
+			// Handle requests like "kitkat help add"
+			core.PrintCommandHelp(os.Args[2])
+		}
+		os.Exit(0)
 	}
 
 	// dispatch block
-	switch os.Args[1] {
+	switch command {
 	case "init":
 		err := core.InitRepo()
 		if err != nil {
@@ -23,7 +35,7 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("Initialized empty kitkat repository in .kitkat/")
-	
+
 	case "add":
 		if len(os.Args) < 3 {
 			fmt.Println("usage: kitkat add <file>")
@@ -65,18 +77,17 @@ func main() {
 			fmt.Println("error:", err)
 			os.Exit(1)
 		}
-	
+
+
 	case "tag":
 		if len(os.Args) < 4 {
-			fmt.Println("Usage: kitkat tag <log-id> <tag>")
+			fmt.Println("Usage: kitkat tag <tag-name> <commit-id>")
 			return
 		}
-		id := os.Args[2]
-		tag := os.Args[3]
-		if err := core.TagLog(id, tag); err != nil {
-			fmt.Println("Error tagging log:", err)
-		} else {
-			fmt.Println("Log tagged successfully")
+		tagName := os.Args[2]
+		commitID := os.Args[3]
+		if err := core.CreateTag(tagName, commitID); err != nil {
+			fmt.Println("Error creating tag:", err)
 		}
 
 	case "grep":
@@ -88,16 +99,25 @@ func main() {
 			fmt.Println("Error searching logs:", err)
 		}
 
-	case "ls-tag":
-		if len(os.Args) < 3 {
-			fmt.Println("Usage: kitkat ls-tag <tag>")
-			return
+	case "commit":
+		if len(os.Args) < 4 || os.Args[2] != "-m" {
+			fmt.Println("usage: kitkat commit -m <message>")
+			os.Exit(1)
 		}
-		if err := core.ListLogsByTag(os.Args[2]); err != nil {
-			fmt.Println("Error:", err)
+		message := os.Args[3]
+		commitID, err := core.Commit(message)
+		if err != nil {
+			fmt.Println("error:", err)
+			os.Exit(1)
 		}
+		fmt.Printf("committed with ID %s\n", commitID)
 
+	case "clean":
+		if err := core.Clean(); err != nil {
+			fmt.Println("Error cleaning repository:", err)
+		}
+		
 	default:
-		fmt.Println("unknown command:", os.Args[1])
+		fmt.Println("unknown command:", command)
 	}
 }

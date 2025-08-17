@@ -1,43 +1,24 @@
 package core
 
 import (
-	"encoding/json"
-	"errors"
+	"fmt"
 	"os"
-
-	"github.com/LeeFred3042U/kitkat/internal/models"
+	"path/filepath"
 )
 
-// TagLog updates the tag field of a log entry when given it's ID
-// format: ./kitkat tag log-id tag-name
-func TagLog(id string, newTag string) error {
-	data, err := os.ReadFile(".kitkat/logs.json") // read existing log file
-	if err != nil {
+const tagsDir = ".kitkat/refs/tags"
+
+// Creates a new lightweight tag pointing to a specific commit
+func CreateTag(tagName, commitID string) error {
+	if err := os.MkdirAll(tagsDir, 0755); err != nil {
 		return err
 	}
 
-	var logs []models.LogEntry
-	if err := json.Unmarshal(data, &logs); err != nil {
+	tagPath := filepath.Join(tagsDir, tagName)
+	if err := os.WriteFile(tagPath, []byte(commitID), 0644); err != nil {
 		return err
 	}
 
-	found := false
-	for i := range logs {
-		if logs[i].ID == id {
-			logs[i].Tag = newTag // mutate tag field
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return errors.New("log ID not found")
-	}
-
-	updated, err := json.MarshalIndent(logs, "", "  ") // re-encode logs
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(".kitkat/logs.json", updated, 0644) // overwrite the file
+	fmt.Printf("Tag '%s' created for commit %s\n", tagName, commitID)
+	return nil
 }

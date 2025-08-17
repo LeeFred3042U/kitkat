@@ -1,24 +1,16 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/LeeFred3042U/kitkat/internal/models"
+	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-// ViewLogs loads logs.json and prints all entries using the custom format ^-^
-// Logs are shown in the order stored 
-// No sorting or filtering yet
+// View Logs
 func ViewLogs() error {
-	data, err := os.ReadFile(".kitkat/logs.json")
+	logs, err := storage.ReadLogs()
 	if err != nil {
-		return err
-	}
-
-	var logs []models.LogEntry
-	if err := json.Unmarshal(data, &logs); err != nil {
 		return err
 	}
 
@@ -29,7 +21,7 @@ func ViewLogs() error {
 	return nil
 }
 
-// printFormattedLog renders a single log entry in a readable, styled format somehat!
+// Renders a single log entry in a readable, styled format somewhat!
 // Timestamps are local 
 // tag is hidden if empty.
 func printFormattedLog(entry models.LogEntry) {

@@ -10,24 +10,22 @@ const (
 	objectsDir = ".kitkat/objects"
 )
 
-// InitRepo sets up the .kitkat structure: required dirs and files.
-// Safe to re-run; won't overwrite unless files are missing.
+// Sets up the .kitkat structure
 func InitRepo() error {
 	err := os.Mkdir(".kitkat", 0755)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
 
-	// objectsDir stores hashed file contents (content-addressed)
-	dirs := []string{".kitkat/objects"}
+	// Stores hashed file contents
+	dirs := []string{".kitkat/objects", ".kitkat/refs/tags"}
 	for _, dir := range dirs {
 		if err := os.Mkdir(dir, 0755); err != nil && !os.IsExist(err) {
 			return err
 		}
 	}
 
-	// index: file path -> hash map
-	// commits.log: future use for log entries or snapshots
+	// log entries or snapshots
 	files := []string{".kitkat/index", ".kitkat/commits.log"}
 	for _, file := range files {
 		f, err := os.Create(file)

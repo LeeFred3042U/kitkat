@@ -2,9 +2,10 @@ package models
 
 import "time"
 
-type LogEntry struct {
+
+type Commit struct {
 	ID        string
-	Tag       string
 	Message   string
 	Timestamp time.Time
+	TreeHash  string
 }
