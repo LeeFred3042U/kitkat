@@ -1,123 +1,146 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"fmt"
+	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/core"
-	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-func main() {
-	// Handle help flags
-	if len(os.Args) < 2 || os.Args[1] == "--help" || os.Args[1] == "-h" {
-		core.PrintGeneralHelp()
-		os.Exit(0)
-	}
+type CommandFunc func(args []string)
 
-	command := os.Args[1]
-	if command == "help" {
-		if len(os.Args) < 3 {
-			core.PrintGeneralHelp()
+// Command registry
+var commands = map[string]CommandFunc{
+	"init": func(args []string) {
+		if err := core.InitRepo(); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
+
+	"add": func(args []string) {
+		if len(args) < 1 {
+			fmt.Println("Usage: kitkat add <file-path>")
+			return
+		}
+		// Allow adding multiple files
+		for _, path := range args {
+			if err := core.AddFile(path); err != nil {
+				fmt.Printf("Error adding %s: %v\n", path, err)
+			}
+		}
+	},
+
+	"commit": func(args []string) {
+		if len(args) < 2 || args[0] != "-m" {
+			fmt.Println("Usage: kitkat commit -m <message>")
+			return
+		}
+		message := strings.Join(args[1:], " ")
+		id, err := core.Commit(message)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		fmt.Println("Commit created:", id)
+	},
+
+	"log": func(args []string) {
+		if err := core.ShowLog(); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
+
+	"status": func(args []string) {
+		if err := core.Status(); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
+
+	"diff": func(args []string) {
+		if err := core.Diff(); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
+
+	"branch": func(args []string) {
+		if len(args) < 1 {
+			fmt.Println("Usage: kitkat branch <branch-name>")
+			return
+		}
+		if err := core.CreateBranch(args[0]); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
+
+	"checkout": func(args []string) {
+		if len(args) < 1 {
+			fmt.Println("Usage: kitkat checkout <branch-name | file-path>")
+			return
+		}
+		name := args[0]
+		// Check if the argument is a branch or a file
+		if core.IsBranch(name) {
+			if err := core.CheckoutBranch(name); err != nil {
+				fmt.Println("Error:", err)
+			}
 		} else {
-			// Handle requests like "kitkat help add"
-			core.PrintCommandHelp(os.Args[2])
+			if err := core.CheckoutFile(name); err != nil {
+				fmt.Println("Error:", err)
+			}
 		}
-		os.Exit(0)
+	},
+
+	"merge": func(args []string) {
+		if len(args) < 1 {
+			fmt.Println("Usage: kitkat merge <branch-name>")
+			return
+		}
+		if err := core.Merge(args[0]); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
+
+	"ls-files": func(args []string) {
+		if err := core.ListFiles(); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
+
+	"clean": func(args []string) {
+		// For safety, let's make it require a -f flag
+		if len(args) > 0 && args[0] == "-f" {
+			if err := core.Clean(false); err != nil { // false means not a dry run
+				fmt.Println("Error:", err)
+			}
+		} else {
+			fmt.Println("This will delete untracked files. Run 'kitkat clean -f' to proceed.")
+			if err := core.Clean(true); err != nil { // true means dry run
+				fmt.Println("Error:", err)
+			}
+		}
+	},
+
+	"help": func(args []string) {
+		if len(args) > 0 {
+			core.PrintCommandHelp(args[0])
+		} else {
+			core.PrintGeneralHelp()
+		}
+	},
+}
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: kitkat <command> [args]")
+		return
 	}
 
-	// dispatch block
-	switch command {
-	case "init":
-		err := core.InitRepo()
-		if err != nil {
-			fmt.Println("error:", err)
-			os.Exit(1)
-		}
-		fmt.Println("Initialized empty kitkat repository in .kitkat/")
-
-	case "add":
-		if len(os.Args) < 3 {
-			fmt.Println("usage: kitkat add <file>")
-			os.Exit(1)
-		}
-		err := core.AddFile(os.Args[2])
-		if err != nil {
-			fmt.Println("error:", err)
-			os.Exit(1)
-		}
-		fmt.Printf("added %s\n", os.Args[2])
-
-	case "ls-files":
-		entries, err := storage.LoadIndex()
-		if err != nil {
-			fmt.Println("error:", err)
-			os.Exit(1)
-		}
-		for path := range entries {
-			fmt.Println(path)
-		}
-
-	case "log":
-		if len(os.Args) < 3 {
-			fmt.Println("usage: kitkat log <message>")
-			os.Exit(1)
-		}
-		msg := os.Args[2]
-		err := core.LogMessage(msg)
-		if err != nil {
-			fmt.Println("error:", err)
-			os.Exit(1)
-		}
-		fmt.Println("log saved.")
-
-	case "view":
-		err := core.ViewLogs()
-		if err != nil {
-			fmt.Println("error:", err)
-			os.Exit(1)
-		}
-
-
-	case "tag":
-		if len(os.Args) < 4 {
-			fmt.Println("Usage: kitkat tag <tag-name> <commit-id>")
-			return
-		}
-		tagName := os.Args[2]
-		commitID := os.Args[3]
-		if err := core.CreateTag(tagName, commitID); err != nil {
-			fmt.Println("Error creating tag:", err)
-		}
-
-	case "grep":
-		if len(os.Args) < 3 {
-			fmt.Println("Usage: kitkat grep <term>")
-			return
-		}
-		if err := core.GrepLogs(os.Args[2]); err != nil {
-			fmt.Println("Error searching logs:", err)
-		}
-
-	case "commit":
-		if len(os.Args) < 4 || os.Args[2] != "-m" {
-			fmt.Println("usage: kitkat commit -m <message>")
-			os.Exit(1)
-		}
-		message := os.Args[3]
-		commitID, err := core.Commit(message)
-		if err != nil {
-			fmt.Println("error:", err)
-			os.Exit(1)
-		}
-		fmt.Printf("committed with ID %s\n", commitID)
-
-	case "clean":
-		if err := core.Clean(); err != nil {
-			fmt.Println("Error cleaning repository:", err)
-		}
-		
-	default:
-		fmt.Println("unknown command:", command)
+	cmd, args := os.Args[1], os.Args[2:]
+	if handler, ok := commands[cmd]; ok {
+		handler(args)
+	} else {
+		fmt.Println("Unknown command:", cmd)
+		core.PrintGeneralHelp()
 	}
 }

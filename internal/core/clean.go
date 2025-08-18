@@ -1,15 +1,16 @@
 package core
 
 import (
-	"fmt"
 	"os"
+	"fmt"
+	"strings"
 	"path/filepath"
 
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
 // Removes untracked files from the working directory
-func Clean() error {
+func Clean(dryRun bool) error {
 	index, err := storage.LoadIndex()
 	if err != nil {
 		return err
@@ -20,17 +21,31 @@ func Clean() error {
 			return err
 		}
 
-		if path == ".kitkat" {
-			return filepath.SkipDir
+		clean := filepath.Clean(path)
+
+		// skip the repo dir and everything under it
+		if clean == repoDir || strings.HasPrefix(clean, repoDir+string(os.PathSeparator)) {
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
 		}
 
-		if _, tracked := index[path]; !tracked && path != "." && !info.IsDir() {
-			fmt.Printf("Removing %s\n", path)
-			return os.Remove(path)
+		// skip directories and the root marker "."
+		if info.IsDir() || clean == "." {
+			return nil
 		}
 
+		// if not tracked, remove (or print if dry run)
+		if _, tracked := index[clean]; !tracked {
+			if dryRun {
+				fmt.Printf("Would remove %s\n", clean)
+				return nil
+			}
+			fmt.Printf("Removing %s\n", clean)
+			return os.Remove(clean)
+		}
 		return nil
 	})
-
 	return err
 }

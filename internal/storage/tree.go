@@ -1,14 +1,15 @@
 package storage
 
 import (
-	"os"
-	"fmt"
 	"bufio"
 	"bytes"
-	"strings"
 	"crypto/sha1"
+	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 )
+
 // Creates a tree object from the current index and stores it
 func CreateTree() (string, error) {
 	index, err := LoadIndex()

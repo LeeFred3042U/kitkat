@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	
+
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 

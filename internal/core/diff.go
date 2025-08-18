@@ -12,7 +12,7 @@ func showDiff(oldContent, newContent string) {
 	oldLines := strings.Split(oldContent, "\n")
 	newLines := strings.Split(newContent, "\n")
 
-	// This is a very basic diff implementation 
+	// This is a very basic diff implementation
 	// A real implementation would use
 	// a more sophisticated algorithm like Myers diff
 	for _, line := range oldLines {

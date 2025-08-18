@@ -1,10 +1,10 @@
 package storage
 
 import (
-	"crypto/sha1"
-	"fmt"
 	"io"
 	"os"
+	"fmt"
+	"crypto/sha1"
 	"path/filepath"
 )
 
@@ -12,41 +12,45 @@ const (
 	objectsDir = ".kitkat/objects"
 )
 
-// HashAndStoreFile computes SHA-1 hash of file content
-// saves it in .kitkat/objects/<hash> if not present
-// Returns a hash string
 func HashAndStoreFile(path string) (string, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
+    content, err := os.ReadFile(path) // Reads the file once
+    if err != nil {
+        return "", err
+    }
 
-	h := sha1.New()
-	if _, err := io.Copy(h, f); err != nil {
-		return "", err
-	}
-	hash := fmt.Sprintf("%x", h.Sum(nil))
+    h := sha1.New()
+    h.Write(content) // Hashes the content from memory
+    hash := fmt.Sprintf("%x", h.Sum(nil))
 
-	// Reset file pointer before second read — needed since hashing moved it to EOF
-	f.Seek(0, 0)
-	content, _ := io.ReadAll(f)
-
-	objectPath := filepath.Join(objectsDir, hash)
-
-	// Only write if object doesn't exist
-	if _, err := os.Stat(objectPath); os.IsNotExist(err) {
-		err = os.WriteFile(objectPath, content, 0644)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return hash, nil
+    objectPath := filepath.Join(objectsDir, hash)
+    if _, err := os.Stat(objectPath); os.IsNotExist(err) {
+        if err := os.WriteFile(objectPath, content, 0644); err != nil { 
+			// Writes the content from memory
+            return "", err
+        }
+    }
+    return hash, nil
 }
 
 // Reads an object from the objects directory
 func ReadObject(hash string) ([]byte, error) {
 	objectPath := filepath.Join(objectsDir, hash)
 	return os.ReadFile(objectPath)
+}
+
+// Computes the SHA-1 hash of a file's content
+// does not store the file in the object database
+func HashFile(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	hasher := sha1.New()
+	if _, err := io.Copy(hasher, file); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", hasher.Sum(nil)), nil
 }
