@@ -13,23 +13,27 @@ const (
 )
 
 func HashAndStoreFile(path string) (string, error) {
-    content, err := os.ReadFile(path) // Reads the file once
-    if err != nil {
-        return "", err
-    }
+	f, err := os.Open(path)
+	if err != nil { return "", err }
+	defer f.Close()
 
-    h := sha1.New()
-    h.Write(content) // Hashes the content from memory
-    hash := fmt.Sprintf("%x", h.Sum(nil))
+	h := sha1.New()
+	if _, err := io.Copy(h, f); err != nil { return "", err }
+	hash := fmt.Sprintf("%x", h.Sum(nil))
 
-    objectPath := filepath.Join(objectsDir, hash)
-    if _, err := os.Stat(objectPath); os.IsNotExist(err) {
-        if err := os.WriteFile(objectPath, content, 0644); err != nil { 
-			// Writes the content from memory
-            return "", err
-        }
-    }
-    return hash, nil
+	objPath := filepath.Join(objectsDir, hash)
+	if _, err := os.Stat(objPath); os.IsNotExist(err) {
+		// write via tmp file
+		tmp := objPath + ".tmp"
+		in, _ := os.Open(path)
+		defer in.Close()
+		out, err := os.Create(tmp)
+		if err != nil { return "", err }
+		if _, err := io.Copy(out, in); err != nil { out.Close(); os.Remove(tmp); return "", err }
+		out.Close()
+		if err := os.Rename(tmp, objPath); err != nil { os.Remove(tmp); return "", err }
+	}
+	return hash, nil
 }
 
 // Reads an object from the objects directory

@@ -128,6 +128,17 @@ var commands = map[string]CommandFunc{
 			core.PrintGeneralHelp()
 		}
 	},
+
+	"tag": func(args []string) {
+		if len(args) < 2 {
+			fmt.Println("Usage: kitkat tag <tag-name> <commit-id>")
+			return
+		}
+		if err := core.CreateTag(args[0], args[1]); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
+	
 }
 
 func main() {
