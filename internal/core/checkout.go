@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"errors"
+	"strings"
 	"path/filepath"
 
 	"github.com/LeeFred3042U/kitkat/internal/storage"
@@ -42,7 +43,7 @@ func CheckoutBranch(name string) error {
 	if err != nil {
 		return fmt.Errorf("branch '%s' not found", name)
 	}
-	commitHash := string(commitHashBytes)
+	commitHash := strings.TrimSpace(string(commitHashBytes))
 
 	// Get the tree of the target commit
 	// We need to find the commit object to get its tree hash

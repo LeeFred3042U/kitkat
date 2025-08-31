@@ -45,9 +45,9 @@ func Commit(message string) (string, error) {
 		// It is the first commit, parentID remains empty
 	} else {
 		branchPath := filepath.Join(".kitkat", currentBranchRefPath)
-		if parentBytes, err := os.ReadFile(branchPath); err == nil {
-			parentID = string(parentBytes)
-		}
+			if parentBytes, err := os.ReadFile(branchPath); err == nil {
+			    parentID = strings.TrimSpace(string(parentBytes))
+			}
 		// If the file doesn't exist, it's the first commit on this branch. parentID remains empty.
 	}
 

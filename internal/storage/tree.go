@@ -29,8 +29,11 @@ func CreateTree() (string, error) {
 
 	// Store the tree object
 	objectPath := filepath.Join(objectsDir, treeHash)
+	if err := os.MkdirAll(objectsDir, 0755); err != nil {
+	    return "", err
+	}
 	if err := os.WriteFile(objectPath, treeContent.Bytes(), 0644); err != nil {
-		return "", err
+	    return "", err
 	}
 
 	return treeHash, nil

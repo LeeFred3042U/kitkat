@@ -18,7 +18,7 @@ func Merge(branchToMerge string) error {
 	if err != nil {
 		return fmt.Errorf("branch '%s' not found", branchToMerge)
 	}
-	featureHeadHash := string(featureHeadHashBytes)
+	featureHeadHash := strings.TrimSpace(string(featureHeadHashBytes))
 
 	// Getting the commit hash of the current branch (HEAD)
 	currentHeadHash, err := readHEAD()
@@ -45,7 +45,7 @@ func Merge(branchToMerge string) error {
 	// This is a fast-forward merge
 	// Get the path to the current branch file (e.g., .kitkat/refs/heads/main)
 	headData, _ := os.ReadFile(".kitkat/HEAD")
-	refPath := strings.TrimPrefix(string(headData), "ref: ")
+	refPath := strings.TrimSpace(strings.TrimPrefix(string(headData), "ref: "))
 	currentBranchFile := filepath.Join(".kitkat", refPath)
 
 	// Update the current branch pointer to the new commit

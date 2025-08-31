@@ -28,7 +28,7 @@ func readHEAD() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(commitHash), nil
+	return strings.TrimSpace(string(commitHash)), nil
 }
 
 // Create a new branch pointing to the current HEAD commit
@@ -46,9 +46,9 @@ func CreateBranch(name string) error {
 	if err := os.MkdirAll(headsDir, 0755); err != nil {
 		return err
 	}
-
+	
 	branchPath := filepath.Join(headsDir, name)
-	return os.WriteFile(branchPath, []byte(commitHash), 0644)
+	return os.WriteFile(branchPath, []byte(strings.TrimSpace(commitHash)), 0644)
 }
 
 // Checks if a branch with the given name exists.
