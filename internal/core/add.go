@@ -1,8 +1,12 @@
 package core
 
 import (
-	"errors"
 	"os"
+	"fmt"
+	"errors"
+	"strings"
+	"path/filepath"
+
 
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
@@ -29,5 +33,73 @@ func AddFile(path string) error {
 	}
 
 	index[path] = hash
+	return storage.WriteIndex(index)
+}
+
+// AddAll stages all changes in the working directory.
+// This includes new files, modified files, and deleted files.
+func AddAll() error {
+	// Load the current index from the last known state.
+	// This map represents what we *think* is currently staged.
+	index, err := storage.LoadIndex()
+	if err != nil {
+		return err
+	}
+
+	// We need a way to track which files we see in the working directory
+	// A map is used for this, giving us O(1) average time complexity for lookups
+	filesInWorkDir := make(map[string]bool)
+
+	// 3. Walk the entire directory tree, starting from the current location ".".
+	err = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Clean the path to use consistent separators.
+		cleanPath := filepath.Clean(path)
+
+		// IMPORTANT: Skip the .kitkat directory entirely to avoid tracking our own database files.
+		if strings.HasPrefix(cleanPath, repoDir+string(os.PathSeparator)) || cleanPath == repoDir {
+			if info.IsDir() {
+				return filepath.SkipDir // This is an efficient way to stop descending into a directory.
+			}
+			return nil
+		}
+
+		// We only care about files, not directories
+		if info.IsDir() {
+			return nil
+		}
+		
+		// Mark this file as "seen" in the working directory
+		filesInWorkDir[cleanPath] = true
+
+		// Hash the file and add/update it in the index.
+		// This is the same logic as AddFile, but applied to every file we find
+		hash, err := storage.HashAndStoreFile(cleanPath)
+		if err != nil {
+			// Continue even if one file fails.
+			fmt.Printf("warning: could not add file %s: %v\n", cleanPath, err)
+			return nil
+		}
+		index[cleanPath] = hash
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Find and handle deleted files.
+	// We loop through the original index. If a file from the index was NOT seen
+	// during our walk of the working directory, it must have been deleted
+	for pathInIndex := range index {
+		if !filesInWorkDir[pathInIndex] {
+			// Remove the deleted file from our index map
+			delete(index, pathInIndex)
+		}
+	}
+
+	// Write the fully updated index back to disk
 	return storage.WriteIndex(index)
 }

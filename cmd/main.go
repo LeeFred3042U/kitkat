@@ -23,6 +23,16 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Usage: kitkat add <file-path>")
 			return
 		}
+
+		// Check for the "-A" or "-all" flag
+		if args[0] == "-A" || args[0] == "--all" {
+			fmt.Println("Staging all changes...")
+			if err := core.AddAll(); err != nil {
+				fmt.Println("Error:", err)
+			}
+			return
+		}
+
 		// Allow adding multiple files
 		for _, path := range args {
 			if err := core.AddFile(path); err != nil {
@@ -32,17 +42,37 @@ var commands = map[string]CommandFunc{
 	},
 
 	"commit": func(args []string) {
-		if len(args) < 2 || args[0] != "-m" {
-			fmt.Println("Usage: kitkat commit -m <message>")
+		if len(args) < 2 {
+			fmt.Println("Usage: kitkat commit <-m | -am> <message>")
 			return
 		}
-		message := strings.Join(args[1:], " ")
-		id, err := core.Commit(message)
-		if err != nil {
-			fmt.Println("Error:", err)
+
+		// Check for the combined "-am" flag.
+		if args[0] == "-am" {
+			message := strings.Join(args[1:], " ")
+			id, err := core.CommitAll(message) // Call the new CommitAll function
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+			fmt.Println("Commit created:", id)
 			return
 		}
-		fmt.Println("Commit created:", id)
+
+		// Check for the standard "-m" flag.
+		if args[0] == "-m" {
+			message := strings.Join(args[1:], " ")
+			id, err := core.Commit(message)
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+			fmt.Println("Commit created:", id)
+			return
+		}
+		
+		// If neither flag is recognized
+		fmt.Println("Usage: kitkat commit <-m | -am> <message>")
 	},
 
 	"log": func(args []string) {

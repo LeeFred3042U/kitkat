@@ -14,12 +14,12 @@ var helpMessages = map[string]CommandHelp{
 		Usage:   "Usage: kitkat init\n\nInitializes a new .kitkat directory in the current folder, preparing it for tracking files",
 	},
 	"add": {
-		Summary: "Add file contents to the index",
-		Usage:   "Usage: kitkat add <file>\n\nThis command hashes the file's content and adds it to the index (the staging area), preparing it to be included in the next commit",
+		Summary: "Add file contents to the index.",
+		Usage:   "Usage: kitkat add <file-path> | --all\n\nThis command adds file contents to the staging area.\nUse '--all' to stage all new, modified, and deleted files.",
 	},
 	"commit": {
-		Summary: "Record changes to the repository",
-		Usage:   "Usage: kitkat commit -m <message>\n\nCreates a new commit with the current contents of the index. The commit records a snapshot of the tracked files at this point in time",
+		Summary: "Record changes to the repository.",
+		Usage:   "Usage: kitkat commit <-m | -am> <message>\n\nCreates a new commit from the staging area.\nUse '-am' to automatically stage all tracked files before committing.",
 	},
 	"diff": {
 	    Summary: "Show changes between the last commit and staging area",

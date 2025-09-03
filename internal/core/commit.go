@@ -97,3 +97,16 @@ func getCurrentBranchRefPath() (string, error) {
 	}
 	return strings.TrimPrefix(ref, "ref: "), nil
 }
+
+// CommitAll stages all changes and then creates a new commit
+// This is the logic for the "commit -am" shortcut
+func CommitAll(message string) (string, error) {
+	// Stage all changes in the repository, just like 'add -A'
+	if err := AddAll(); err != nil { // We need to call AddAll from the core package
+		return "", fmt.Errorf("failed to stage changes before committing: %w", err)
+	}
+
+	// Call the existing Commit function to create the snapshot
+	// By now, the index is up-to-date with all changes
+	return Commit(message)
+}
