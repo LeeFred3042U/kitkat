@@ -18,7 +18,7 @@ func ShowLog() error {
 		commit := commits[i]
 		fmt.Printf("commit %s\n", commit.ID)
 		fmt.Printf("Parent: %s\n", commit.Parent)
-		fmt.Printf("Date:   %s\n", commit.Timestamp.Format("Mon Jan 2 15:04:05 2006 -0700"))
+		fmt.Printf("Date:   %s\n", commit.Timestamp.Format("Mon Jan 02 15:04:05 2006 -0700"))
 		fmt.Printf("\n    %s\n\n", commit.Message)
 	}
 
