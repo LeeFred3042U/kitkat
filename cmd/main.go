@@ -76,7 +76,11 @@ var commands = map[string]CommandFunc{
 	},
 
 	"log": func(args []string) {
-		if err := core.ShowLog(); err != nil {
+		oneline := false
+		if len(args) > 0 && args[0] == "--oneline" {
+			oneline = true
+		}
+		if err := core.ShowLog(oneline); err != nil {
 			fmt.Println("Error:", err)
 		}
 	},
@@ -167,6 +171,20 @@ var commands = map[string]CommandFunc{
 		if err := core.CreateTag(args[0], args[1]); err != nil {
 			fmt.Println("Error:", err)
 		}
+	},
+	"config": func(args []string) {
+		if len(args) != 3 || args[0] != "--global" {
+			fmt.Println("Usage: kitkat config --global <key> <value>")
+			return
+		}
+		key := args[1]
+		value := args[2]
+
+		if err := core.SetConfig(key, value); err != nil{
+			fmt.Println("Error: ", err)
+			return
+		}
+		fmt.Printf("Set config: %s = %s\n", key, value)
 	},
 	
 }

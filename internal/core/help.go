@@ -46,6 +46,10 @@ var helpMessages = map[string]CommandHelp{
 		Summary: "Remove untracked files from the working directory",
 		Usage:   "Usage: kitkat clean\n\nRemoves all files from the current directory that are not tracked by KitKat",
 	},
+	"config": {
+		Summary: "Get and set repository or global options.",
+		Usage:   "Usage: kitkat config --global <key> <value>\n\nSets a global configuration value that will be used for all repositories.",
+	},
 }
 
 // Displays the main help message with a list of all commands
