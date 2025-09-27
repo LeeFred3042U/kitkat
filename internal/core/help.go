@@ -26,8 +26,8 @@ var helpMessages = map[string]CommandHelp{
 	    Usage:   "Usage: kitkat diff\n\nShows content differences between the HEAD commit and the index",
 	},
 	"log": {
-	    Summary: "Show the commit history",
-	    Usage:   "Usage: kitkat log\n\nDisplays a list of all commits in the current branch's history in reverse chronological order.",
+		Summary: "Show the commit history",
+		Usage:   "Usage: kitkat log [--oneline]\n\nDisplays the commit history for the current branch.\nUse '--oneline' for a compact, single-line view.",
 	},
 	
 	"tag": {

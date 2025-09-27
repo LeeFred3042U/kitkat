@@ -110,3 +110,17 @@ func CommitAll(message string) (string, error) {
 	// By now, the index is up-to-date with all changes
 	return Commit(message)
 }
+
+// getHeadState determines the current state of HEAD 
+func getHeadState() (string, error) {
+	headData, err := os.ReadFile(".kitkat/HEAD")
+	if err != nil {
+		return "", err
+	}
+	ref := strings.TrimSpace(string(headData))
+	if strings.HasPrefix(ref, "ref: refs/heads/") {
+		return strings.TrimPrefix(ref, "ref: refs/heads/"), nil
+	}
+	// If not a ref, it's a detached HEAD pointing directly to a commit hash.
+	return "detached HEAD", nil
+}
