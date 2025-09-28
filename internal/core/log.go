@@ -12,18 +12,18 @@ func ShowLog(oneline bool) error {
     if err != nil {
         return err
     }
+
+    // Print in reverse chronological order (newest first).
     for i := len(commits) - 1; i >= 0; i-- {
         commit := commits[i]
-
         if oneline {
             fmt.Printf("%s %s\n", commit.ID[:7], commit.Message)
         } else {
             fmt.Printf("commit %s\n", commit.ID)
-            fmt.Printf("Parent: %s\n", commit.Parent)
+            fmt.Printf("Author: %s <%s>\n", commit.AuthorName, commit.AuthorEmail)
             fmt.Printf("Date:   %s\n", commit.Timestamp.Local().Format("Mon Jan 02 15:04:05 2006 -0700"))
             fmt.Printf("\n    %s\n\n", commit.Message)
         }
     }
-
     return nil
 }
