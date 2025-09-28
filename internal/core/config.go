@@ -77,3 +77,13 @@ func SetConfig(key, value string) error {
 
 	return nil
 }
+
+// GetConfig reads a key from the global config file
+func GetConfig(key string) (string, bool, error) {
+	config, err := readConfig()
+	if err != nil {
+		return "", false, err
+	}
+	value, ok := config[key]
+	return value, ok, nil
+}
