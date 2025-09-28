@@ -1,19 +1,21 @@
 package core
 
 import (
-	"os"
-	"fmt"
-	"time"
-	"strings"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
+	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
+	"github.com/LeeFred3042U/kitkat/internal/diff"
 	"github.com/LeeFred3042U/kitkat/internal/models"
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-// Computes a SHA-1 over the commit contents, including the parent
+// hashCommit creates a unique, content-based SHA-1 hash for a Commit object.
 func hashCommit(c models.Commit) string {
 	h := sha1.New()
 	h.Write([]byte(c.TreeHash))
@@ -23,69 +25,90 @@ func hashCommit(c models.Commit) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// Commit creates a new commit object with the current index contents
-func Commit(message string) (string, error) {
-	// Create a tree from the current index
+// Commit creates a new snapshot of the repository based on the current state of the index
+// It prevents empty commits and returns the full commit object and a formatted summary
+func Commit(message string) (models.Commit, string, error) {
+	authorName, _, _ := GetConfig("user.name")
+	if authorName == "" {
+		authorName = "Unknown"
+	}
+	authorEmail, _, _ := GetConfig("user.email")
+	if authorEmail == "" {
+		authorEmail = "unknown@example.com"
+	}
+
 	treeHash, err := storage.CreateTree()
 	if err != nil {
-		return "", err
+		return models.Commit{}, "", err
 	}
 
-	// Get the last commit to set as the parent of this new commit
-	var parentID string
-	// We read the current branch's head to find the parent
-	currentBranchRefPath, err := getCurrentBranchRefPath()
-	if err != nil {
-		// If there's no ref path, it could be the first commit
-		// Let's check if any commits exist at all
-		_, err := storage.GetLastCommit()
-		if err != storage.ErrNoCommits {
-			return "", fmt.Errorf("could not resolve HEAD: %w", err)
-		}
-		// It is the first commit, parentID remains empty
-	} else {
-		branchPath := filepath.Join(".kitkat", currentBranchRefPath)
-			if parentBytes, err := os.ReadFile(branchPath); err == nil {
-			    parentID = strings.TrimSpace(string(parentBytes))
-			}
-		// If the file doesn't exist, it's the first commit on this branch. parentID remains empty.
+	var parentID, parentTreeHash string
+	parentCommit, err := storage.GetLastCommit()
+	if err != nil && err != storage.ErrNoCommits {
+		return models.Commit{}, "", err
+	}
+	if err == nil {
+		parentID = parentCommit.ID
+		parentTreeHash = parentCommit.TreeHash
 	}
 
+	if treeHash == parentTreeHash {
+		return models.Commit{}, "", errors.New("nothing to commit, working tree clean")
+	}
 
-	// Create the commit object
 	commit := models.Commit{
-		Parent:    parentID,
-		Message:   message,
-		Timestamp: time.Now().UTC(),
-		TreeHash:  treeHash,
+		Parent:      parentID,
+		Message:     message,
+		Timestamp:   time.Now().UTC(),
+		TreeHash:    treeHash,
+		AuthorName:  authorName,
+		AuthorEmail: authorEmail,
 	}
-
-	// Now compute a content addressed ID for the new commit
 	commit.ID = hashCommit(commit)
 
-	// Append the commit to the commit log
 	if err := storage.AppendCommit(commit); err != nil {
-		return "", err
+		return models.Commit{}, "", err
 	}
 
-	// After saving the commit, update the current branch to point to it
 	refPath, err := getCurrentBranchRefPath()
 	if err != nil {
-		return "", fmt.Errorf("could not get current branch reference for update: %w", err)
+		headData, readErr := os.ReadFile(".kitkat/HEAD")
+		if readErr != nil {
+			return models.Commit{}, "", fmt.Errorf("could not read HEAD: %w", readErr)
+		}
+		ref := strings.TrimSpace(string(headData))
+		if !strings.HasPrefix(ref, "ref: ") {
+			return models.Commit{}, "", fmt.Errorf("cannot commit in detached HEAD state")
+		}
+		refPath = strings.TrimPrefix(ref, "ref: ")
+		if err := os.MkdirAll(filepath.Dir(filepath.Join(".kitkat", refPath)), 0755); err != nil {
+			return models.Commit{}, "", fmt.Errorf("could not create refs directory: %w", err)
+		}
 	}
 
 	branchFilePath := filepath.Join(".kitkat", refPath)
-
-	// Write the new commit ID to the branch file (e.g., .kitkat/refs/heads/main)
 	if err := os.WriteFile(branchFilePath, []byte(commit.ID), 0644); err != nil {
-		return "", fmt.Errorf("failed to update branch pointer: %w", err)
+		return models.Commit{}, "", fmt.Errorf("failed to update branch pointer: %w", err)
 	}
 
-	return commit.ID, nil
+	parentTree := make(map[string]string)
+	if parentID != "" {
+		parentTree, _ = storage.ParseTree(parentCommit.TreeHash)
+	}
+	newTree, _ := storage.ParseTree(treeHash)
+	summary, _ := GenerateCommitSummary(parentTree, newTree)
+
+	return commit, summary, nil
 }
 
+// CommitAll is a convenience function that implements the `commit -am` shortcut.
+func CommitAll(message string) (models.Commit, string, error) {
+	if err := AddAll(); err != nil {
+		return models.Commit{}, "", fmt.Errorf("failed to stage changes before committing: %w", err)
+	}
+	return Commit(message)
+}
 
-// getCurrentBranchRefPath reads the HEAD file to find the path to the current branch file
 func getCurrentBranchRefPath() (string, error) {
 	headData, err := os.ReadFile(".kitkat/HEAD")
 	if err != nil {
@@ -98,29 +121,60 @@ func getCurrentBranchRefPath() (string, error) {
 	return strings.TrimPrefix(ref, "ref: "), nil
 }
 
-// CommitAll stages all changes and then creates a new commit
-// This is the logic for the "commit -am" shortcut
-func CommitAll(message string) (string, error) {
-	// Stage all changes in the repository, just like 'add -A'
-	if err := AddAll(); err != nil { // We need to call AddAll from the core package
-		return "", fmt.Errorf("failed to stage changes before committing: %w", err)
+// pluralize is a simple helper for the summary string
+func pluralize(count int) string {
+	if count == 1 {
+		return ""
 	}
-
-	// Call the existing Commit function to create the snapshot
-	// By now, the index is up-to-date with all changes
-	return Commit(message)
+	return "s"
 }
 
-// getHeadState determines the current state of HEAD 
-func getHeadState() (string, error) {
-	headData, err := os.ReadFile(".kitkat/HEAD")
-	if err != nil {
-		return "", err
+// GenerateCommitSummary compares parent and new trees to create a formatted summary
+// of files changed, lines inserted, and lines deleted
+func GenerateCommitSummary(parentTree, newTree map[string]string) (string, error) {
+	filesChanged, insertions, deletions := 0, 0, 0
+	allPaths := make(map[string]bool)
+	for path := range parentTree {
+		allPaths[path] = true
 	}
-	ref := strings.TrimSpace(string(headData))
-	if strings.HasPrefix(ref, "ref: refs/heads/") {
-		return strings.TrimPrefix(ref, "ref: refs/heads/"), nil
+	for path := range newTree {
+		allPaths[path] = true
 	}
-	// If not a ref, it's a detached HEAD pointing directly to a commit hash.
-	return "detached HEAD", nil
+
+	for path := range allPaths {
+		oldHash, inOld := parentTree[path]
+		newHash, inNew := newTree[path]
+
+		if inOld && !inNew {
+			filesChanged++
+			oldContent, _ := storage.ReadObject(oldHash)
+			deletions += len(strings.Split(string(oldContent), "\n"))
+		} else if !inOld && inNew {
+			filesChanged++
+			newContent, _ := storage.ReadObject(newHash)
+			insertions += len(strings.Split(string(newContent), "\n"))
+		} else if inOld && inNew && oldHash != newHash {
+			filesChanged++
+			oldContent, _ := storage.ReadObject(oldHash)
+			newContent, _ := storage.ReadObject(newHash)
+			d := diff.NewMyersDiff(strings.Split(string(oldContent), "\n"), strings.Split(string(newContent), "\n"))
+			for _, chk := range d.Diffs() {
+				if chk.Operation == diff.INSERT {
+					insertions += len(chk.Text)
+				}
+				if chk.Operation == diff.DELETE {
+					deletions += len(chk.Text)
+				}
+			}
+		}
+	}
+
+	plural := "s"
+	if filesChanged == 1 {
+		plural = ""
+	}
+	return fmt.Sprintf("%d file%s changed, %d insertion%s(+), %d deletion%s(-)",
+		filesChanged, plural,
+		insertions, pluralize(insertions),
+		deletions, pluralize(deletions)), nil
 }

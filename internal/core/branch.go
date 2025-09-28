@@ -59,3 +59,35 @@ func IsBranch(name string) bool {
 	}
 	return false
 }
+
+// ListBranches lists all local branches and highlights the current one
+func ListBranches() error {
+	currentBranch, err := GetHeadState()
+	if err != nil {
+		// It's possible to be in a detached HEAD state.
+		if strings.Contains(err.Error(), "invalid HEAD format") {
+			// In a real git, it would show the hash, while we just note it
+			currentBranch = "HEAD (detached)"
+		} else {
+			return err
+		}
+	}
+
+	// Read all files in the refs/heads directory
+	// Each file is a branch
+	branches, err := os.ReadDir(headsDir)
+	if err != nil {
+		return err
+	}
+
+	for _, b := range branches {
+		if b.Name() == currentBranch {
+			// Print the current branch with a '*' and in color.
+			fmt.Printf("* %s%s%s\n", colorGreen, b.Name(), colorReset)
+		} else {
+			fmt.Printf("  %s\n", b.Name())
+		}
+	}
+
+	return nil
+}
