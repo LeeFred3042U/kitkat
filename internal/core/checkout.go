@@ -55,8 +55,16 @@ func CheckoutBranch(name string) error {
 	if err != nil {
 		return err
 	}
+
+	isDirty, err := IsWorkDirDirty()
+	if err != nil {
+	    return fmt.Errorf("could not check for local changes: %w", err)
+	}
+	if isDirty {
+	    return errors.New("error: Your local changes to the following files would be overwritten by checkout:\n\tPlease commit your changes or stash them before you switch branches")
+	}
 	
-	// Before making changes, you should check if the user has unstaged work
+	// Before making changes, we should check if the user has unstaged work
 	// that would be overwritten
 	// So the real Git would abort here
 	// For now, this is what i have done
@@ -93,4 +101,20 @@ func CheckoutBranch(name string) error {
 	// Update HEAD to point to the new branch
 	newHEADContent := fmt.Sprintf("ref: refs/heads/%s", name)
 	return os.WriteFile(".kitkat/HEAD", []byte(newHEADContent), 0644)
+}
+
+// CheckoutCommit moves HEAD to a specific commit and updates the working directory
+// This puts the repository in a "detached HEAD" state
+func CheckoutCommit(commitHash string) error {
+	// Verify the commit actually exists
+	_, err := storage.FindCommit(commitHash)
+	if err != nil {
+		return fmt.Errorf("commit '%s' not found", commitHash)
+	}
+
+	if err := updateWorkspaceAndIndex(commitHash); err != nil {
+		return err
+	}
+
+	return os.WriteFile(".kitkat/HEAD", []byte(commitHash), 0644)
 }

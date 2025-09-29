@@ -39,7 +39,7 @@ func Merge(branchToMerge string) error {
 			fmt.Println("Already up to date.")
 			return nil
 		}
-		return fmt.Errorf("not a fast-forward merge. Please rebase your branch.")
+		return fmt.Errorf("not a fast-forward merge. Please rebase your branch")
 	}
 
 	// This is a fast-forward merge

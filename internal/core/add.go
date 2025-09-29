@@ -12,8 +12,11 @@ import (
 )
 
 func AddFile(path string) error {
+	if !IsSafePath(path) {
+		return fmt.Errorf("unsafe path detected: %s", path)
+	}
 	// Guard: ensure we're inside a kitkat repo
-	if _, err := os.Stat(repoDir); os.IsNotExist(err) {
+	if _, err := os.Stat(RepoDir); os.IsNotExist(err) {
 		return errors.New("not a kitkat repository (run `kitkat init`)")
 	}
 
@@ -50,7 +53,7 @@ func AddAll() error {
 	// A map is used for this, giving us O(1) average time complexity for lookups
 	filesInWorkDir := make(map[string]bool)
 
-	// 3. Walk the entire directory tree, starting from the current location ".".
+	// Walk the entire directory tree, starting from the current location "."
 	err = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -59,8 +62,13 @@ func AddAll() error {
 		// Clean the path to use consistent separators.
 		cleanPath := filepath.Clean(path)
 
+		if !IsSafePath(cleanPath) {
+			fmt.Printf("warning: skipping unsafe path: %s\n", cleanPath)
+			return nil // Just skip unsafe paths found during a walk
+		}
+
 		// IMPORTANT: Skip the .kitkat directory entirely to avoid tracking our own database files.
-		if strings.HasPrefix(cleanPath, repoDir+string(os.PathSeparator)) || cleanPath == repoDir {
+		if strings.HasPrefix(cleanPath, RepoDir+string(os.PathSeparator)) || cleanPath == RepoDir {
 			if info.IsDir() {
 				return filepath.SkipDir // This is an efficient way to stop descending into a directory.
 			}

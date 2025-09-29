@@ -24,7 +24,7 @@ func Clean(dryRun bool) error {
 		clean := filepath.Clean(path)
 
 		// skip the repo dir and everything under it
-		if clean == repoDir || strings.HasPrefix(clean, repoDir+string(os.PathSeparator)) {
+		if clean == RepoDir || strings.HasPrefix(clean, RepoDir+string(os.PathSeparator)) {
 			if info.IsDir() {
 				return filepath.SkipDir
 			}

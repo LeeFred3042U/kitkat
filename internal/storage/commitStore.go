@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"bufio"
 	"errors"
-	"syscall"
 	"encoding/json"
 
 	"github.com/LeeFred3042U/kitkat/internal/models"
@@ -15,34 +14,18 @@ var ErrNoCommits = errors.New("no commits yet")
 
 const commitsPath = ".kitkat/commits.log"
 
-func lockCommitFile() (*os.File, error) {
-	lockFile := commitsPath + ".lock"
-	f, err := os.OpenFile(lockFile, os.O_CREATE|os.O_RDWR, 0600)
-	if err != nil {
-		return nil, err
-	}
-	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX); err != nil {
-		f.Close()
-		return nil, err
-	}
-	return f, nil
-}
-func unlockCommitFile(f *os.File) {
-	_ = syscall.Flock(int(f.Fd()), syscall.LOCK_UN)
-	f.Close()
-}
-
 // Appends commit as NDJSON
 func AppendCommit(commit models.Commit) error {
 	if err := os.MkdirAll(".kitkat", 0755); err != nil {
 		return err
 	}
 
-	lock, err := lockCommitFile()
+	// Use the generic lock function from lock*.go for consistency
+	lockFile, err := lock(commitsPath)
 	if err != nil {
 		return err
 	}
-	defer unlockCommitFile(lock)
+	defer unlock(lockFile)
 
 	f, err := os.OpenFile(commitsPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
