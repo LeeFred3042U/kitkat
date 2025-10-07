@@ -1,4 +1,4 @@
-# KitKat
+# kitkat
 
 A toy Git clone written in Go for learning the fundamentals of version control
 
