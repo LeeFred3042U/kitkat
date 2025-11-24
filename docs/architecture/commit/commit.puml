@@ -1,0 +1,35 @@
+@startuml commit
+title Command: kitkat commit
+skinparam style strictuml
+start
+:User runs `kitkat commit ...`;
+:Load User Config (Name/Email);
+
+partition "Tree Generation" {
+  :Load Index;
+  :Sort File Paths;
+  :Generate Tree Content ("hash path");
+  :Hash Tree Content -> TreeHash;
+  :Store Tree in .kitkat/objects/;
+}
+
+partition "Parent Resolution" {
+  :Read HEAD;
+  :Resolve Parent Commit ID;
+  if (TreeHash == ParentTreeHash?) then (yes)
+    :Error: "Nothing to commit";
+    stop
+  endif
+}
+
+partition "Commit Creation" {
+  :Create Commit Object
+  (Parent, TreeHash, Msg, Author);
+  :Hash Commit -> CommitID;
+  :Append to .kitkat/commits.log;
+}
+
+:Update Branch Reference
+(Write CommitID to .kitkat/refs/heads/<branch>);
+stop
+@enduml

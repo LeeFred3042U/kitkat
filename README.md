@@ -223,3 +223,6 @@ kitkat config --global user.email "you@example.com"
 # Get your name
 kitkat config --global user.email
 ```
+
+> Note- kitkat diff: Currently acts like git diff --staged (compares Index vs HEAD). Standard git diff compares Workdir vs Index.
+> kitkat merge: Currently behaves like git merge --ff-only. It will succeed if the merge is a Fast-Forward, but it will fail (by design, for now) if a true 3-way merge is required.
