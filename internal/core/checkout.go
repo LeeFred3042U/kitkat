@@ -1,11 +1,11 @@
 package core
 
 import (
-	"os"
-	"fmt"
 	"errors"
-	"strings"
+	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
@@ -35,7 +35,6 @@ func CheckoutFile(filePath string) error {
 	return os.WriteFile(filePath, content, 0644)
 }
 
-
 // Switch the current HEAD to the named branch and updates the working directory.
 func CheckoutBranch(name string) error {
 	branchPath := filepath.Join(headsDir, name)
@@ -58,12 +57,12 @@ func CheckoutBranch(name string) error {
 
 	isDirty, err := IsWorkDirDirty()
 	if err != nil {
-	    return fmt.Errorf("could not check for local changes: %w", err)
+		return fmt.Errorf("could not check for local changes: %w", err)
 	}
 	if isDirty {
-	    return errors.New("error: Your local changes to the following files would be overwritten by checkout:\n\tPlease commit your changes or stash them before you switch branches")
+		return errors.New("error: Your local changes to the following files would be overwritten by checkout:\n\tPlease commit your changes or stash them before you switch branches")
 	}
-	
+
 	// Before making changes, we should check if the user has unstaged work
 	// that would be overwritten
 	// So the real Git would abort here
@@ -97,7 +96,7 @@ func CheckoutBranch(name string) error {
 	if err := storage.WriteIndex(targetTree); err != nil {
 		return err
 	}
-	
+
 	// Update HEAD to point to the new branch
 	newHEADContent := fmt.Sprintf("ref: refs/heads/%s", name)
 	return os.WriteFile(".kitkat/HEAD", []byte(newHEADContent), 0644)

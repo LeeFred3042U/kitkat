@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/sha1"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"bufio"
 )
 
 // CreateTree creates a tree object from the current index and stores it

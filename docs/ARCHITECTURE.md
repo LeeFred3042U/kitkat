@@ -1,10 +1,14 @@
+# KitKat Architecture & Design
+
+This document details the internal design of KitKat.
+
 ## 1. Repository Initialization
-Logic for creating a new repository structure.
+Logic for creating a new repository structure (`.kitkat` folders, HEAD, etc.).
 
 ![Init Flow](architecture/init/init.png)
 
 ## 2. Staging Flow (Add)
-Logic for moving files from the Working Directory to the Index.
+Logic for moving files from the Working Directory to the Index (Staging Area).
 
 ![Add Flow](architecture/add/add.png)
 

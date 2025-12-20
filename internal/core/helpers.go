@@ -2,10 +2,10 @@ package core
 
 import (
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/storage"	
+	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
 // getHeadState is a UI helper that determines a user-friendly name for the
@@ -24,16 +24,15 @@ func GetHeadState() (string, error) {
 }
 
 func IsSafePath(path string) bool {
-    // Clean the path to resolve ".." patterns
-    cleanedPath := filepath.Clean(path)
+	// Clean the path to resolve ".." patterns
+	cleanedPath := filepath.Clean(path)
 
-    // A safe path must not be absolute and must not try to go "up" the directory tree
-    return !filepath.IsAbs(cleanedPath) && !strings.HasPrefix(cleanedPath, "..")
+	// A safe path must not be absolute and must not try to go "up" the directory tree
+	return !filepath.IsAbs(cleanedPath) && !strings.HasPrefix(cleanedPath, "..")
 }
 
-
 // IsWorkDirDirty checks for any tracked files that have been modified or deleted
-// in the working directory but not yet staged 
+// in the working directory but not yet staged
 // This is crucial for preventing
 // data loss during operations like checkout or merge
 func IsWorkDirDirty() (bool, error) {

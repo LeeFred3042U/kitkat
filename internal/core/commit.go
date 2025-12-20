@@ -14,6 +14,7 @@ import (
 	"github.com/LeeFred3042U/kitkat/internal/models"
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
+
 // note task - Move commit storage from commits.log to individual objects in .kitkat/objects/
 // hashCommit creates a unique, content-based SHA-1 hash for a Commit object.
 func hashCommit(c models.Commit) string {

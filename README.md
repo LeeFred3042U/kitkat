@@ -1,3 +1,4 @@
+[![SWOC Season 6](https://img.shields.io/badge/SWOC-Season%206-blue?style=for-the-badge&logo=codeforces)](https://swoc.tech)
 # kitkat
 
 A toy Git clone written in Go for learning the fundamentals of version control
@@ -35,26 +36,16 @@ You can download it from the [official Go website](https://go.dev/dl/)
     go build -o kitkat ./cmd/main.go
     ```
 
-    **Note:** If you do not add the executable to your system's PATH (step 4), you must run the command with `./kitkat` from within this directory (e.g., `./kitkat init`)
-
-4.  **(Optional) Add to Your System's PATH**
-    To use the `kitkat` command from anywhere, move the executable to a location in your system's `PATH`
-
-    ```sh
-    # For Linux or macOS
-    sudo mv kitkat /usr/local/bin/
-    ```
-
 ### First-Time Configuration
 
 Before you start using `kitkat`, you should set your name and email. This information will be used in your commits
 
 ```sh
 # Set your name
-kitkat config --global user.name "Your Name"
+./kitkat config --global user.name "Your Name"
 
 # Set your email
-kitkat config --global user.email "you@example.com"
+./kitkat config --global user.email "you@example.com"
 ```
 
 -----
@@ -67,15 +58,15 @@ You can get help directly from the command line
 To see a list of all available commands and their summaries, use the `help` command
 
 ```sh
-kitkat help
+./kitkat help
 ```
 
 **Specific Command Help**
 To get detailed usage information for a specific command, add the command's name after `help`
 
 ```sh
-kitkat help add
-kitkat help commit
+./kitkat help add
+./kitkat help commit
 ```
 
 -----
@@ -93,7 +84,7 @@ kitkat help commit
 
 ## Core Concept
 
-KitKat is an educational toy project designed to mimic the core functionality of Git. It operates on the same fundamental principles of version control, taking **snapshots** of your project. Each snapshot is built from three key objects:
+kitkat is an educational toy project designed to mimic the core functionality of Git. It operates on the same fundamental principles of version control, taking **snapshots** of your project. Each snapshot is built from three key objects:
 
   * **Blobs:** The content of your files
   * **Trees:** The directory structure that organizes blobs
@@ -105,10 +96,10 @@ KitKat is an educational toy project designed to mimic the core functionality of
 
 ### `init`
 
-Initializes a new, empty KitKat repository in the current directory.
+Initializes a new, empty ./kitkat repository in the current directory.
 
 ```sh
-kitkat init
+./kitkat init
 ```
 
 ### `add`
@@ -117,10 +108,10 @@ Adds file contents to the staging area (index). It can stage specific files or a
 
 ```sh
 # Stage a specific file
-kitkat add <file-path>
+./kitkat add <file-path>
 
 # Stage all new, modified, and deleted files
-kitkat add --all
+./kitkat add --all
 ```
 
 ### `log`
@@ -129,10 +120,10 @@ Shows the commit history for the current branch.
 
 ```sh
 # Show the detailed, multi-line history
-kitkat log
+./kitkat log
 
 # Show a compact, single-line view
-kitkat log --oneline
+./kitkat log --oneline
 ```
 
 ### `status`
@@ -140,7 +131,7 @@ kitkat log --oneline
 Displays the state of the working directory and the staging area. It shows which files are staged, unstaged, and untracked.
 
 ```sh
-kitkat status
+./kitkat status
 ```
 
 ### `diff`
@@ -148,7 +139,7 @@ kitkat status
 Shows the colorized differences between the last commit and the staging area.
 
 ```sh
-kitkat diff
+./kitkat diff
 ```
 
 ### `branch`
@@ -157,10 +148,10 @@ Manages branches. Running it without arguments lists all branches. Providing a n
 
 ```sh
 # List all local branches
-kitkat branch
+./kitkat branch
 
 # Create a new branch named 'new-feature'
-kitkat branch new-feature
+./kitkat branch new-feature
 ```
 
 ### `checkout`
@@ -169,13 +160,13 @@ Switches branches, checks out a specific commit (detached HEAD), or restores a f
 
 ```sh
 # Switch to the 'new-feature' branch
-kitkat checkout new-feature
+./kitkat checkout new-feature
 
 # Checkout a specific commit hash (detached HEAD)
-kitkat checkout <commit-hash>
+./kitkat checkout <commit-hash>
 
 # Revert a file to its state in the last commit
-kitkat checkout <file-path>
+./kitkat checkout <file-path>
 ```
 
 ### `merge`
@@ -183,7 +174,7 @@ kitkat checkout <file-path>
 Joins another branch's history into the current branch. Currently only supports fast-forward merges.
 
 ```sh
-kitkat merge <branch-name>
+./kitkat merge <branch-name>
 ```
 
 ### `ls-files`
@@ -191,7 +182,7 @@ kitkat merge <branch-name>
 Shows a simple list of all files currently in the staging area.
 
 ```sh
-kitkat ls-files
+./kitkat ls-files
 ```
 
 ### `clean`
@@ -200,10 +191,10 @@ Removes untracked files from the working directory. Requires a `-f` flag for saf
 
 ```sh
 # Show which files would be removed (dry run)
-kitkat clean
+./kitkat clean
 
 # Forcefully remove untracked files
-kitkat clean -f
+./kitkat clean -f
 ```
 
 ### `config`
@@ -212,17 +203,17 @@ Gets or sets the global user configuration, such as name and email.
 
 ```sh
 # Set your name
-kitkat config --global user.name "Your Name"
+./kitkat config --global user.name "Your Name"
 
 # Get your name
-kitkat config --global user.name
+./kitkat config --global user.name
 
 # Set your email
-kitkat config --global user.email "you@example.com"
+./kitkat config --global user.email "you@example.com"
 
 # Get your name
-kitkat config --global user.email
+./kitkat config --global user.email
 ```
 
-> Note- kitkat diff: Currently acts like git diff --staged (compares Index vs HEAD). Standard git diff compares Workdir vs Index.
-> kitkat merge: Currently behaves like git merge --ff-only. It will succeed if the merge is a Fast-Forward, but it will fail (by design, for now) if a true 3-way merge is required.
+> Note- ./kitkat diff: Currently acts like git diff --staged (compares Index vs HEAD). Standard git diff compares Workdir vs Index.
+> ./kitkat merge: Currently behaves like git merge --ff-only. It will succeed if the merge is a Fast-Forward, but it will fail (by design, for now) if a true 3-way merge is required.

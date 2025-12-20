@@ -72,7 +72,7 @@ func Status() error {
 			return err
 		}
 		cleanPath := filepath.Clean(path)
-		
+
 		// Skip the .kitkat directory and other directories
 		if info.IsDir() || strings.HasPrefix(cleanPath, RepoDir+string(os.PathSeparator)) || cleanPath == RepoDir {
 			return nil
