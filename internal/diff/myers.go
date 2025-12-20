@@ -126,8 +126,8 @@ func (md *MyersDiff[T]) diffBisect(text1, text2 []T) []Diff[T] {
 	text1Length, text2Length := len(text1), len(text2)
 	maxD := (text1Length + text2Length + 1) / 2
 	vOffset := maxD
-	vLength := 2 * maxD + 1
-	
+	vLength := 2*maxD + 1
+
 	v1 := make([]int, vLength)
 	v2 := make([]int, vLength)
 	for i := range v1 {
@@ -259,4 +259,4 @@ func min(a, b int) int {
 
 // TODO: Optimize diff by mapping lines/blocks to hashes (like Git does).
 // Use a map[string]int for line -> ID mapping before running Myers
-// For now, we run pure Myers on raw runes for simplicitygit 
+// For now, we run pure Myers on raw runes for simplicitygit

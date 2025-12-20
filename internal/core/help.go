@@ -22,14 +22,14 @@ var helpMessages = map[string]CommandHelp{
 		Usage:   "Usage: kitkat commit <-m | -am> <message>\n\nCreates a new commit from the staging area.\nUse '-am' to automatically stage all tracked files before committing.",
 	},
 	"diff": {
-	    Summary: "Show changes between the last commit and staging area",
-	    Usage:   "Usage: kitkat diff\n\nShows content differences between the HEAD commit and the index",
+		Summary: "Show changes between the last commit and staging area",
+		Usage:   "Usage: kitkat diff\n\nShows content differences between the HEAD commit and the index",
 	},
 	"log": {
 		Summary: "Show the commit history",
 		Usage:   "Usage: kitkat log [--oneline]\n\nDisplays the commit history for the current branch.\nUse '--oneline' for a compact, single-line view.",
 	},
-	
+
 	"tag": {
 		Summary: "Create a new tag for a commit",
 		Usage:   "Usage: kitkat tag <tag-name> <commit-id>\n\nCreates a new lightweight tag that points to the specified commit",
