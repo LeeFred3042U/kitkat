@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/diff"    
-	"github.com/LeeFred3042U/kitkat/internal/storage" 
+	"github.com/LeeFred3042U/kitkat/internal/diff"
+	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
 // ANSI color codes for formatting terminal output
 const (
-	colorReset = "\033[0m" 
-	colorRed   = "\033[31m" 
-	colorGreen = "\033[32m" 
-	colorBlue  = "\033[1;34m" 
+	colorReset = "\033[0m"
+	colorRed   = "\033[31m"
+	colorGreen = "\033[32m"
+	colorBlue  = "\033[1;34m"
 )
 
 // displayDiff formats and prints the structured diff output from the Myers algorithm.
@@ -68,7 +68,6 @@ func Diff() error {
 	if err != nil {
 		return err
 	}
-
 
 	// First Loop: Iterate through files in the index to find additions and modifications
 	for path, indexHash := range index {

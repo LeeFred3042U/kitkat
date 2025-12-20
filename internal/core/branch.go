@@ -1,11 +1,11 @@
 package core
 
 import (
-	"os"
-	"fmt"
 	"errors"
-	"strings"
+	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
@@ -23,7 +23,7 @@ func readHEAD() (string, error) {
 		return "", fmt.Errorf("invalid HEAD format")
 	}
 	refPath := strings.TrimPrefix(ref, "ref: ")
-	
+
 	commitHash, err := os.ReadFile(filepath.Join(".kitkat", refPath))
 	if err != nil {
 		return "", err
@@ -42,11 +42,11 @@ func CreateBranch(name string) error {
 		}
 		commitHash = lastCommit.ID
 	}
-	
+
 	if err := os.MkdirAll(headsDir, 0755); err != nil {
 		return err
 	}
-	
+
 	branchPath := filepath.Join(headsDir, name)
 	return os.WriteFile(branchPath, []byte(strings.TrimSpace(commitHash)), 0644)
 }

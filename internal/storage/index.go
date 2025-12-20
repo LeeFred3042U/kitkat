@@ -22,7 +22,7 @@ func LoadIndex() (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not read index file: %w", err)
 	}
-	
+
 	// If the file is empty, avoid a JSON error.
 	if len(content) == 0 {
 		return index, nil
@@ -59,7 +59,7 @@ func WriteIndex(index map[string]string) error {
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
-	
+
 	err = encoder.Encode(index)
 	// Must close the file before renaming it
 	if closeErr := file.Close(); err == nil {

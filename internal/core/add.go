@@ -1,12 +1,11 @@
 package core
 
 import (
-	"os"
-	"fmt"
 	"errors"
-	"strings"
+	"fmt"
+	"os"
 	"path/filepath"
-
+	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
@@ -79,7 +78,7 @@ func AddAll() error {
 		if info.IsDir() {
 			return nil
 		}
-		
+
 		// Mark this file as "seen" in the working directory
 		filesInWorkDir[cleanPath] = true
 

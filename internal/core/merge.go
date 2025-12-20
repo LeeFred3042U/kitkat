@@ -1,10 +1,10 @@
 package core
 
 import (
-	"os"
 	"fmt"
-	"strings"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
@@ -52,7 +52,7 @@ func Merge(branchToMerge string) error {
 	if err := os.WriteFile(currentBranchFile, featureHeadHashBytes, 0644); err != nil {
 		return fmt.Errorf("failed to update branch pointer: %w", err)
 	}
-	
+
 	// Update the working directory and index to match the new HEAD state
 	fmt.Printf("Updating files to match %s...\n", featureHeadHash[:7])
 	err = updateWorkspaceAndIndex(featureHeadHash)
@@ -65,7 +65,6 @@ func Merge(branchToMerge string) error {
 	fmt.Printf("Merge successful. Fast-forwarded to %s\n", featureHeadHash)
 	return nil
 }
-
 
 // A helper to reset the working directory and index to a specific commit
 // Shared logic between checkout and merge
@@ -86,13 +85,19 @@ func updateWorkspaceAndIndex(commitHash string) error {
 			os.Remove(path)
 		}
 	}
-	
+
 	// Write/update files from the target tree
 	for path, hash := range targetTree {
 		content, err := storage.ReadObject(hash)
-		if err != nil { return err }
-		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil { return err }
-		if err := os.WriteFile(path, content, 0644); err != nil { return err }
+		if err != nil {
+			return err
+		}
+		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			return err
+		}
+		if err := os.WriteFile(path, content, 0644); err != nil {
+			return err
+		}
 	}
 
 	// Update the index to match the new tree

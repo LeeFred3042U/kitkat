@@ -1,3 +1,4 @@
+[![SWOC Season 6](https://img.shields.io/badge/SWOC-Season%206-blue?style=for-the-badge&logo=codeforces)](https://swoc.tech)
 # kitkat
 
 A toy Git clone written in Go for learning the fundamentals of version control
