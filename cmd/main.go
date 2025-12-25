@@ -35,6 +35,21 @@ var commands = map[string]CommandFunc{
 			}
 		}
 	},
+	// --- NEW RM COMMAND ADDED HERE ---
+	"rm": func(args []string) {
+		if len(args) < 1 {
+			fmt.Println("Usage: kitkat rm <file>")
+			return
+		}
+		filename := args[0]
+		// Call the function we created in core/remove.go
+		if err := core.RemoveFile(filename); err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		fmt.Printf("Removed '%s'\n", filename)
+	},
+	// ---------------------------------
 	"commit": func(args []string) {
 		if len(args) < 2 {
 			fmt.Println("Usage: kitkat commit <-m | -am> <message>")
