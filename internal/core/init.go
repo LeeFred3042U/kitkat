@@ -8,6 +8,11 @@ import (
 // InitRepo sets up the .kitkat directory structure.
 func InitRepo() error {
 	// Create all necessary subdirectories using the public constants.
+	// Check if the .kitkat directory already exists
+	if _, err := os.Stat(RepoDir); err == nil {
+		// It exists! Return an error to stop the program.
+		return fmt.Errorf("repository already initialized")
+	}
 	dirs := []string{
 		RepoDir,
 		ObjectsDir,
