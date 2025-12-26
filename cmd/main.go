@@ -35,21 +35,18 @@ var commands = map[string]CommandFunc{
 			}
 		}
 	},
-	// --- NEW RM COMMAND ADDED HERE ---
 	"rm": func(args []string) {
 		if len(args) < 1 {
 			fmt.Println("Usage: kitkat rm <file>")
 			return
 		}
 		filename := args[0]
-		// Call the function we created in core/remove.go
 		if err := core.RemoveFile(filename); err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
 		fmt.Printf("Removed '%s'\n", filename)
 	},
-	// ---------------------------------
 	"commit": func(args []string) {
 		if len(args) < 2 {
 			fmt.Println("Usage: kitkat commit <-m | -am> <message>")
@@ -147,8 +144,14 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"ls-files": func(args []string) {
-		if err := core.ListFiles(); err != nil {
-			fmt.Println("Error:", err)
+		entries, err := core.LoadIndex()
+		if err != nil {
+			fmt.Println("Error loading index:", err)
+			return
+		}
+
+		for _, entry := range entries {
+			fmt.Println(entry.Path)
 		}
 	},
 	"clean": func(args []string) {
