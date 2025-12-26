@@ -108,12 +108,27 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"branch": func(args []string) {
+		// 1. Check for Delete Flag: kitkat branch -d <name>
+		if len(args) > 0 && (args[0] == "-d" || args[0] == "--delete") {
+			if len(args) < 2 {
+				fmt.Println("Usage: kitkat branch -d <branch-name>")
+				return
+			}
+			if err := core.DeleteBranch(args[1]); err != nil {
+				fmt.Println("Error:", err)
+			}
+			return
+		}
+
+		// 2. Default: List Branches (kitkat branch)
 		if len(args) == 0 {
 			if err := core.ListBranches(); err != nil {
 				fmt.Println("Error:", err)
 			}
 			return
 		}
+
+		// 3. Create Branch: kitkat branch <name>
 		if err := core.CreateBranch(args[0]); err != nil {
 			fmt.Println("Error:", err)
 		}
@@ -216,6 +231,7 @@ func main() {
 	cmd, args := os.Args[1], os.Args[2:]
 	if handler, ok := commands[cmd]; ok {
 		handler(args)
+
 	} else {
 		fmt.Println("Unknown command:", cmd)
 		core.PrintGeneralHelp()
