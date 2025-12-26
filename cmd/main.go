@@ -35,6 +35,18 @@ var commands = map[string]CommandFunc{
 			}
 		}
 	},
+	"rm": func(args []string) {
+		if len(args) < 1 {
+			fmt.Println("Usage: kitkat rm <file>")
+			return
+		}
+		filename := args[0]
+		if err := core.RemoveFile(filename); err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		fmt.Printf("Removed '%s'\n", filename)
+	},
 	"commit": func(args []string) {
 		if len(args) < 2 {
 			fmt.Println("Usage: kitkat commit <-m | -am> <message>")
@@ -95,17 +107,7 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Error:", err)
 		}
 	},
-	"branch": func(args []string) {
-		if len(args) == 0 {
-			if err := core.ListBranches(); err != nil {
-				fmt.Println("Error:", err)
-			}
-			return
-		}
-		if err := core.CreateBranch(args[0]); err != nil {
-			fmt.Println("Error:", err)
-		}
-	},
+
 	"checkout": func(args []string) {
 		if len(args) < 1 {
 			fmt.Println("Usage: kitkat checkout <branch-name | file-path>")
@@ -132,8 +134,14 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"ls-files": func(args []string) {
-		if err := core.ListFiles(); err != nil {
-			fmt.Println("Error:", err)
+		entries, err := core.LoadIndex()
+		if err != nil {
+			fmt.Println("Error loading index:", err)
+			return
+		}
+
+		for _, entry := range entries {
+			fmt.Println(entry.Path)
 		}
 	},
 	"clean": func(args []string) {
@@ -198,6 +206,7 @@ func main() {
 	cmd, args := os.Args[1], os.Args[2:]
 	if handler, ok := commands[cmd]; ok {
 		handler(args)
+
 	} else {
 		fmt.Println("Unknown command:", cmd)
 		core.PrintGeneralHelp()
