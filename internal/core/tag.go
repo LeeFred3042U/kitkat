@@ -22,3 +22,40 @@ func CreateTag(tagName, commitID string) error {
 	fmt.Printf("Tag '%s' created for commit %s\n", tagName, commitID)
 	return nil
 }
+
+// ListTags prints all existing tags and the commit they point to
+func ListTags() error {
+	if _, err := os.Stat(tagsDir); os.IsNotExist(err) {
+		fmt.Println("No tags found.")
+		return nil
+	}
+
+	entries, err := os.ReadDir(tagsDir)
+	if err != nil {
+		return err
+	}
+
+	if len(entries) == 0 {
+		fmt.Println("No tags found.")
+		return nil
+	}
+
+	fmt.Println("Tags:")
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		tagName := entry.Name()
+		tagPath := filepath.Join(tagsDir, tagName)
+		commitBytes, err := os.ReadFile(tagPath)
+		if err != nil {
+			fmt.Printf("  %s (error reading commit ID)\n", tagName)
+			continue
+		}
+
+		fmt.Printf("  %s -> %s\n", tagName, string(commitBytes))
+	}
+
+	return nil
+}
