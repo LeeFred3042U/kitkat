@@ -55,7 +55,7 @@ func Merge(branchToMerge string) error {
 
 	// Update the working directory and index to match the new HEAD state
 	fmt.Printf("Updating files to match %s...\n", featureHeadHash[:7])
-	err = updateWorkspaceAndIndex(featureHeadHash)
+	err = UpdateWorkspaceAndIndex(featureHeadHash)
 	if err != nil {
 		// Attempt to roll back the branch pointer on failure
 		os.WriteFile(currentBranchFile, []byte(currentHeadHash), 0644)
@@ -66,9 +66,9 @@ func Merge(branchToMerge string) error {
 	return nil
 }
 
-// A helper to reset the working directory and index to a specific commit
-// Shared logic between checkout and merge
-func updateWorkspaceAndIndex(commitHash string) error {
+// UpdateWorkspaceAndIndex resets the working directory and index to a specific commit
+// Shared logic between checkout, merge, and reset
+func UpdateWorkspaceAndIndex(commitHash string) error {
 	commit, err := storage.FindCommit(commitHash)
 	if err != nil {
 		return err

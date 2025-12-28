@@ -195,6 +195,16 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Usage: kitkat config --global <key> [<value>]")
 		}
 	},
+	"reset": func(args []string) {
+		if len(args) < 2 || args[0] != "--hard" {
+			fmt.Println("Usage: kitkat reset --hard <commit-hash>")
+			return
+		}
+		commitHash := args[1]
+		if err := core.ResetHard(commitHash); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
 }
 
 func main() {

@@ -8,14 +8,19 @@ import (
 
 // ShowLog prints the commit log. It accepts a boolean to switch to a compact, one-line format.
 func ShowLog(oneline bool) error {
-	commits, err := storage.ReadCommits()
+	// Determine where to start traversing
+	headHash, err := readHEAD()
 	if err != nil {
 		return err
 	}
 
-	// Print in reverse chronological order (newest first).
-	for i := len(commits) - 1; i >= 0; i-- {
-		commit := commits[i]
+	currentHash := headHash
+	for currentHash != "" {
+		commit, err := storage.FindCommit(currentHash)
+		if err != nil {
+			return err
+		}
+
 		if oneline {
 			fmt.Printf("%s %s\n", commit.ID[:7], commit.Message)
 		} else {
@@ -24,6 +29,9 @@ func ShowLog(oneline bool) error {
 			fmt.Printf("Date:   %s\n", commit.Timestamp.Local().Format("Mon Jan 02 15:04:05 2006 -0700"))
 			fmt.Printf("\n    %s\n\n", commit.Message)
 		}
+
+		// Move to parent
+		currentHash = commit.Parent
 	}
 	return nil
 }

@@ -19,16 +19,20 @@ func readHEAD() (string, error) {
 		return "", err
 	}
 	ref := strings.TrimSpace(string(headData))
+	// If it doesn't start with "ref: ", it's likely a detached HEAD (raw commit hash)
 	if !strings.HasPrefix(ref, "ref: ") {
-		return "", fmt.Errorf("invalid HEAD format")
+		return ref, nil
 	}
+	
 	refPath := strings.TrimPrefix(ref, "ref: ")
+	// Ensure correct path separators for the OS
+	refPath = filepath.FromSlash(refPath)
 
-	commitHash, err := os.ReadFile(filepath.Join(".kitkat", refPath))
+	commitHashBytes, err := os.ReadFile(filepath.Join(".kitkat", refPath))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read ref %s: %w", refPath, err)
 	}
-	return strings.TrimSpace(string(commitHash)), nil
+	return strings.TrimSpace(string(commitHashBytes)), nil
 }
 
 // Create a new branch pointing to the current HEAD commit
