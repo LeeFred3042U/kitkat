@@ -16,3 +16,8 @@ Logic for moving files from the Working Directory to the Index (Staging Area).
 Logic for creating a permanent snapshot from the Index.
 
 ![Commit Flow](architecture/commit/commit.png)
+
+## 4. Branch Command
+Logic for listing existing branches and creating a new branch pointing to the current commit.
+
+![Branch Flow](architecture/branch/branch.png)
