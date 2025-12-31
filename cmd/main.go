@@ -166,6 +166,12 @@ var commands = map[string]CommandFunc{
 	},
 	"config": func(args []string) {
 		if len(args) < 2 || args[0] != "--global" {
+			if len(args) == 1 && args[0] == "--list" {
+				if err := core.PrintAllConfig(); err != nil {
+					fmt.Println("Error:", err)
+				}
+				return
+			}
 			fmt.Println("Usage: kitkat config --global <key> [<value>]")
 			return
 		}
