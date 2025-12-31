@@ -42,10 +42,10 @@ Before you start using `kitkat`, you should set your name and email. This inform
 
 ```sh
 # Set your name
-./kitkat config --global user.name "Your Name"
+./kitkat config --global user.name "lostfilesofanni"
 
 # Set your email
-./kitkat config --global user.email "you@example.com"
+./kitkat config --global user.email "ananyacharaka2006@gmail.com"
 ```
 
 -----
