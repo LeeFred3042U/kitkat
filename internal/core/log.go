@@ -66,7 +66,7 @@ func ShowShortLog() error {
 	for _, log := range logs {
 		fmt.Printf("%s (%d):\n", log.name, len(log.commits))
 		for _, commit := range log.commits {
-			fmt.Printf("\t%s\n", commit)
+			fmt.Printf("\t%s\n", commit.Message)
 		}
 		fmt.Println()
 	}
