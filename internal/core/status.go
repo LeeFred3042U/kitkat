@@ -19,11 +19,13 @@ func Status() error {
 	}
 	fmt.Printf("On branch %s\n", headState)
 
-	// Load the tree from the last commit (HEAD)
+	// Load the tree from the commit that HEAD points to
+	// Note: We use GetHeadCommit() instead of storage.GetLastCommit() because
+	// after a reset, HEAD might point to an earlier commit than the last in the log
 	headTree := make(map[string]string)
-	lastCommit, err := storage.GetLastCommit()
-	if err == nil { // A commit exists.
-		tree, parseErr := storage.ParseTree(lastCommit.TreeHash)
+	headCommit, err := GetHeadCommit()
+	if err == nil {
+		tree, parseErr := storage.ParseTree(headCommit.TreeHash)
 		if parseErr != nil {
 			return parseErr
 		}
