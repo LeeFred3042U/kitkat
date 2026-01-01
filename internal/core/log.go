@@ -6,27 +6,33 @@ import (
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-// ShowLog prints all commits reachable from HEAD by walking the parent chain.
-// This ensures that after a reset, only commits in HEAD's history are shown.
-func ShowLog(oneline bool) error {
-	// Get the commit that HEAD currently points to
+// ShowLog prints the commit log. It accepts a boolean for oneline format
+// and an optional limit to restrict the number of commits shown (use -1 or 0 for no limit)
+func ShowLog(oneline bool, limit int) error {
+	// 1Start from HEAD (Architecture from reset-hard branch)
+	// We must walk backwards from HEAD, otherwise 'reset' changes won't be reflected
 	currentCommit, err := GetHeadCommit()
 	if err != nil {
-		if err == storage.ErrNoCommits {
-			fmt.Println("No commits yet.")
-			return nil
-		}
-		return err
+		// Handle the case where the repo is empty or HEAD is invalid
+		return nil 
 	}
 
-	// Walk back through the commit history from HEAD
 	commitHash := currentCommit.ID
+	count := 0
+
+	// Walk the graph (Architecture from reset-hard branch)
 	for commitHash != "" {
+		// Apply the Limit Check (Feature from main branch)
+		if limit > 0 && count >= limit {
+			break
+		}
+
 		commit, err := storage.FindCommit(commitHash)
 		if err != nil {
 			return err
 		}
 
+		// Print Logic
 		if oneline {
 			fmt.Printf("%s %s\n", commit.ID[:7], commit.Message)
 		} else {
@@ -36,8 +42,9 @@ func ShowLog(oneline bool) error {
 			fmt.Printf("\n    %s\n\n", commit.Message)
 		}
 
-		// Move to parent commit
+		// Move to parent pointer
 		commitHash = commit.Parent
+		count++
 	}
 
 	return nil
