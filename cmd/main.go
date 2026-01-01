@@ -78,10 +78,32 @@ var commands = map[string]CommandFunc{
 	},
 	"log": func(args []string) {
 		oneline := false
-		if len(args) > 0 && args[0] == "--oneline" {
-			oneline = true
+		limit := -1
+		i := 0
+		for i < len(args) {
+			switch args[i] {
+			case "--oneline":
+				oneline = true
+				i++
+			case "-n":
+				if i+1 >= len(args) {
+					fmt.Println("Error: -n requires a positive integer argument")
+					return
+				}
+				var n int
+				_, err := fmt.Sscanf(args[i+1], "%d", &n)
+				if err != nil || n <= 0 {
+					fmt.Println("Error: -n requires a positive integer argument")
+					return
+				}
+				limit = n
+				i += 2
+			default:
+				fmt.Printf("Error: unknown flag %s\n", args[i])
+				return
+			}
 		}
-		if err := core.ShowLog(oneline); err != nil {
+		if err := core.ShowLog(oneline, limit); err != nil {
 			fmt.Println("Error:", err)
 		}
 	},
