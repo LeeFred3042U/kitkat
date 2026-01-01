@@ -111,6 +111,22 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Usage: kitkat checkout <branch-name | file-path>")
 			return
 		}
+		if len(args) >= 2 && args[0] == "-b" {
+			name := args[1]
+			if core.IsBranch(name) {
+				fmt.Println("Error: Branch already exists")
+				return
+			}
+			if err := core.CreateBranch(name); err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+			if err := core.CheckoutBranch(name); err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+			return
+		}
 		name := args[0]
 		if core.IsBranch(name) {
 			if err := core.CheckoutBranch(name); err != nil {
