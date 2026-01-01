@@ -8,20 +8,7 @@ import (
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-// getHeadState is a UI helper that determines a user-friendly name for the
-// current state, such as the branch name or "detached HEAD"
-func GetHeadState() (string, error) {
-	headData, err := os.ReadFile(".kitkat/HEAD")
-	if err != nil {
-		return "", err
-	}
-	ref := strings.TrimSpace(string(headData))
-	if strings.HasPrefix(ref, "ref: refs/heads/") {
-		return strings.TrimPrefix(ref, "ref: refs/heads/"), nil
-	}
-	// If HEAD is not pointing to a branch, it's in a "detached HEAD" state
-	return "detached HEAD", nil
-}
+ 
 
 func IsSafePath(path string) bool {
 	// Clean the path to resolve ".." patterns

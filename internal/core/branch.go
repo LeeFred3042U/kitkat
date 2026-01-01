@@ -67,13 +67,14 @@ func ListBranches() error {
 // GetHeadState returns the current branch name or hash
 // GetHeadState returns the current branch name or hash
 func GetHeadState() (string, error) {
-    headPath := filepath.Join(".kitkat", "HEAD")
-    headData, err := os.ReadFile(headPath)
-    if err != nil {
-        return "", err
-    }
-    return strings.TrimSpace(string(headData)), nil
+	headPath := filepath.Join(".kitkat", "HEAD")
+	headData, err := os.ReadFile(headPath)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(headData)), nil
 }
+
 // --- YOUR FEATURE: DeleteBranch ---
 
 // DeleteBranch removes a branch reference safely
