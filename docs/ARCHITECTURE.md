@@ -1,7 +1,3 @@
-# KitKat Architecture & Design
-
-This document details the internal design of KitKat.
-
 ## 1. Repository Initialization
 Logic for creating a new repository structure (`.kitkat` folders, HEAD, etc.).
 
