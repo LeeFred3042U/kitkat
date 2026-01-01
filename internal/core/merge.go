@@ -12,6 +12,15 @@ import (
 // Merge attempts to merge the given branch into the current branch
 // Currently only supports fast-forward merges
 func Merge(branchToMerge string) error {
+	// Pre-flight check to prevent overwriting local changes
+	dirty, err := IsWorkDirDirty()
+	if err != nil {
+		return err
+	}
+	if dirty {
+		return fmt.Errorf("your local changes would be overwritten by merge")
+	}
+
 	// Getting the commit hash of the branch to merge
 	branchPath := filepath.Join(headsDir, branchToMerge)
 	featureHeadHashBytes, err := os.ReadFile(branchPath)
