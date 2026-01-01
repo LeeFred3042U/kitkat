@@ -5,8 +5,19 @@ import (
 	"os"
 )
 
+// isPathExist checks if a path exist or not
+func isPathExist(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
 // InitRepo sets up the .kitkat directory structure.
 func InitRepo() error {
+	// Checks if Repo is already initialized or not
+	if isPathExist(RepoDir) {
+		return fmt.Errorf("repository already initialized")
+	}
+
 	// Create all necessary subdirectories using the public constants.
 	dirs := []string{
 		RepoDir,
