@@ -6,7 +6,7 @@ Fixes # (issue number)
 # Track Selection
 - [ ] Track 1: Beginner Code
 - [ ] Track 2: Visual Documentation
-- [ ] Track 3: Systems Engineering
+- [ ] Track 3: Intermediate Code
 
 # Checklist:
 - [ ] My code follows the style guidelines of this project

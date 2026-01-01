@@ -1,10 +1,19 @@
 package core
 
 import (
+<<<<<<< HEAD
+=======
+	"errors"
+>>>>>>> upstream/main
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+<<<<<<< HEAD
+=======
+
+	"github.com/LeeFred3042U/kitkat/internal/storage"
+>>>>>>> upstream/main
 )
 
 // --- GLOBAL VARIABLE (Fixes undefined: headsDir) ---
@@ -19,6 +28,21 @@ func CreateBranch(branchName string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read HEAD: %v", err)
 	}
+<<<<<<< HEAD
+=======
+	ref := strings.TrimSpace(string(headData))
+	if !strings.HasPrefix(ref, "ref: ") {
+		return "", fmt.Errorf("invalid HEAD format")
+	}
+	refPath := strings.TrimPrefix(ref, "ref: ")
+
+	commitHash, err := os.ReadFile(filepath.Join(".kitkat", refPath))
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(commitHash)), nil
+}
+>>>>>>> upstream/main
 
 	// Resolve HEAD to a commit hash if it's a ref
 	ref := strings.TrimSpace(string(headContent))
@@ -29,7 +53,42 @@ func CreateBranch(branchName string) error {
 		fullRefPath := filepath.Join(".kitkat", refPath)
 		hashBytes, err := os.ReadFile(fullRefPath)
 		if err != nil {
+<<<<<<< HEAD
 			return fmt.Errorf("failed to resolve HEAD ref: %v", err)
+=======
+			return errors.New("cannot create branch: no commits yet")
+		}
+		commitHash = lastCommit.ID
+	}
+
+	if err := os.MkdirAll(headsDir, 0755); err != nil {
+		return err
+	}
+
+	branchPath := filepath.Join(headsDir, name)
+	return os.WriteFile(branchPath, []byte(strings.TrimSpace(commitHash)), 0644)
+}
+
+// Checks if a branch with the given name exists.
+func IsBranch(name string) bool {
+	branchPath := filepath.Join(headsDir, name)
+	if _, err := os.Stat(branchPath); err == nil {
+		return true
+	}
+	return false
+}
+
+// ListBranches lists all local branches and highlights the current one
+func ListBranches() error {
+	currentBranch, err := GetHeadState()
+	if err != nil {
+		// It's possible to be in a detached HEAD state.
+		if strings.Contains(err.Error(), "invalid HEAD format") {
+			// In a real git, it would show the hash, while we just note it
+			currentBranch = "HEAD (detached)"
+		} else {
+			return err
+>>>>>>> upstream/main
 		}
 		commitHash = strings.TrimSpace(string(hashBytes))
 	} else {
@@ -46,6 +105,7 @@ func CreateBranch(branchName string) error {
 	fmt.Printf("Created branch '%s'\n", branchName)
 	return nil
 }
+<<<<<<< HEAD
 
 // ListBranches displays all local branches
 func ListBranches() error {
@@ -119,3 +179,5 @@ func readHEAD() (string, error) {
 	}
 	return strings.TrimSpace(string(data)), nil
 }
+=======
+>>>>>>> upstream/main
