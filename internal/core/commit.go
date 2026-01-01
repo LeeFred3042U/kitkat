@@ -102,6 +102,50 @@ func Commit(message string) (models.Commit, string, error) {
 	return commit, summary, nil
 }
 
+// AmendCommit updates the message of the most recent commit without changing files.
+// It loads the last commit, updates its message, re-hashes it, and updates the branch pointer.
+func AmendCommit(newMessage string) (models.Commit, error) {
+	// Get the last commit
+	lastCommit, err := storage.GetLastCommit()
+	if err != nil {
+		if err == storage.ErrNoCommits {
+			return models.Commit{}, errors.New("no commits to amend")
+		}
+		return models.Commit{}, fmt.Errorf("failed to get last commit: %w", err)
+	}
+
+	// Create a new commit with the updated message but same tree and parent
+	amendedCommit := models.Commit{
+		Parent:      lastCommit.Parent,
+		Message:     newMessage,
+		Timestamp:   lastCommit.Timestamp, // Keep original timestamp
+		TreeHash:    lastCommit.TreeHash,  // Same files
+		AuthorName:  lastCommit.AuthorName,
+		AuthorEmail: lastCommit.AuthorEmail,
+	}
+
+	// Re-hash the commit (this generates a new ID)
+	amendedCommit.ID = hashCommit(amendedCommit)
+
+	// Save the amended commit
+	if err := storage.AppendCommit(amendedCommit); err != nil {
+		return models.Commit{}, fmt.Errorf("failed to save amended commit: %w", err)
+	}
+
+	// Update the branch pointer to the new commit ID
+	refPath, err := getCurrentBranchRefPath()
+	if err != nil {
+		return models.Commit{}, fmt.Errorf("failed to get current branch: %w", err)
+	}
+
+	branchFilePath := filepath.Join(".kitkat", refPath)
+	if err := os.WriteFile(branchFilePath, []byte(amendedCommit.ID), 0644); err != nil {
+		return models.Commit{}, fmt.Errorf("failed to update branch pointer: %w", err)
+	}
+
+	return amendedCommit, nil
+}
+
 // CommitAll is a convenience function that implements the `commit -am` shortcut.
 func CommitAll(message string) (models.Commit, string, error) {
 	if err := AddAll(); err != nil {
