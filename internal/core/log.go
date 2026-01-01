@@ -2,7 +2,9 @@ package core
 
 import (
 	"fmt"
+	"sort"
 
+	"github.com/LeeFred3042U/kitkat/internal/models"
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
@@ -45,6 +47,50 @@ func ShowLog(oneline bool, limit int) error {
 		// Move to parent pointer
 		commitHash = commit.Parent
 		count++
+	}
+
+	return nil
+}
+
+// ShowShortLog prints commit messages grouped by author,
+// sorted by commit counts of each author.
+func ShowShortLog() error {
+	commits, err := storage.ReadCommits()
+	if err != nil {
+		return err
+	}
+
+	// Groups commits by author.
+	authorCommits := make(map[string][]models.Commit)
+	for _, commit := range commits {
+		authorCommits[commit.AuthorName] = append(authorCommits[commit.AuthorName], commit)
+	}
+
+	// Builds a sortable slice.
+	type authorLog struct {
+		name    string
+		commits []models.Commit
+	}
+	var logs []authorLog
+	for author, commits := range authorCommits {
+		logs = append(logs, authorLog{
+			name:    author,
+			commits: commits,
+		})
+	}
+
+	// Sorts the slice by number of commits in descending order.
+	sort.Slice(logs, func(i, j int) bool {
+		return len(logs[i].commits) > len(logs[j].commits)
+	})
+
+	// Prints the shortlog.
+	for _, log := range logs {
+		fmt.Printf("%s (%d):\n", log.name, len(log.commits))
+		for _, commit := range log.commits {
+			fmt.Printf("\t%s\n", commit.Message)
+		}
+		fmt.Println()
 	}
 
 	return nil

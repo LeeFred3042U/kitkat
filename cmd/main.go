@@ -119,6 +119,11 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Error:", err)
 		}
 	},
+	"shortlog": func(args []string) {
+		if err := core.ShowShortLog(); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
 	"status": func(args []string) {
 		if err := core.Status(); err != nil {
 			fmt.Println("Error:", err)
