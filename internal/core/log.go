@@ -6,16 +6,27 @@ import (
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-// ShowLog prints the commit log. It accepts a boolean to switch to a compact, one-line format.
+// ShowLog prints all commits reachable from HEAD by walking the parent chain.
+// This ensures that after a reset, only commits in HEAD's history are shown.
 func ShowLog(oneline bool) error {
-	commits, err := storage.ReadCommits()
+	// Get the commit that HEAD currently points to
+	currentCommit, err := GetHeadCommit()
 	if err != nil {
+		if err == storage.ErrNoCommits {
+			fmt.Println("No commits yet.")
+			return nil
+		}
 		return err
 	}
 
-	// Print in reverse chronological order (newest first).
-	for i := len(commits) - 1; i >= 0; i-- {
-		commit := commits[i]
+	// Walk back through the commit history from HEAD
+	commitHash := currentCommit.ID
+	for commitHash != "" {
+		commit, err := storage.FindCommit(commitHash)
+		if err != nil {
+			return err
+		}
+
 		if oneline {
 			fmt.Printf("%s %s\n", commit.ID[:7], commit.Message)
 		} else {
@@ -24,6 +35,10 @@ func ShowLog(oneline bool) error {
 			fmt.Printf("Date:   %s\n", commit.Timestamp.Local().Format("Mon Jan 02 15:04:05 2006 -0700"))
 			fmt.Printf("\n    %s\n\n", commit.Message)
 		}
+
+		// Move to parent commit
+		commitHash = commit.Parent
 	}
+
 	return nil
 }

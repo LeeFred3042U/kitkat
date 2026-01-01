@@ -111,7 +111,7 @@ func CheckoutCommit(commitHash string) error {
 		return fmt.Errorf("commit '%s' not found", commitHash)
 	}
 
-	if err := updateWorkspaceAndIndex(commitHash); err != nil {
+	if err := UpdateWorkspaceAndIndex(commitHash); err != nil {
 		return err
 	}
 
