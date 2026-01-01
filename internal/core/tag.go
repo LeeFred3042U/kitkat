@@ -22,3 +22,23 @@ func CreateTag(tagName, commitID string) error {
 	fmt.Printf("Tag '%s' created for commit %s\n", tagName, commitID)
 	return nil
 }
+
+// ListTags prints all tags stored in .kitkat/refs/tags/
+func ListTags() error {
+	if _, err := os.Stat(tagsDir); os.IsNotExist(err) {
+		// No tags directory means no tags created yet
+		return nil
+	}
+
+	entries, err := os.ReadDir(tagsDir)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			fmt.Println(entry.Name())
+		}
+	}
+	return nil
+}

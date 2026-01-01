@@ -156,6 +156,12 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"tag": func(args []string) {
+		if len(args) > 0 && (args[0] == "--list" || args[0] == "-l") {
+			if err := core.ListTags(); err != nil {
+				fmt.Println("Error:", err)
+			}
+			return
+		}
 		if len(args) < 2 {
 			fmt.Println("Usage: kitkat tag <tag-name> <commit-id>")
 			return
