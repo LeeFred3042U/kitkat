@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/storage"
+
+	"io/ioutil"
 )
 
 const headsDir = ".kitkat/refs/heads"
@@ -90,4 +92,28 @@ func ListBranches() error {
 	}
 
 	return nil
+}
+
+func RenameCurrentBranch(newName string) error {
+	headPath := ".kitkat/HEAD"
+	headContent, err := ioutil.ReadFile(headPath)
+	if err != nil {
+		return err
+	}
+	headStr := strings.TrimSpace(string(headContent))
+	const refPrefix = "ref: refs/heads/"
+	if !strings.HasPrefix(headStr, refPrefix) {
+		return errors.New("HEAD is not pointing to a branch")
+	}
+	oldName := strings.TrimPrefix(headStr, refPrefix)
+	oldRef := filepath.Join(".kitkat", "refs", "heads", oldName)
+	newRef := filepath.Join(".kitkat", "refs", "heads", newName)
+
+	if _, err := os.Stat(newRef); err == nil {
+		return errors.New("branch name already exists")
+	}
+	if err := os.Rename(oldRef, newRef); err != nil {
+		return err
+	}
+	return ioutil.WriteFile(headPath, []byte(refPrefix+newName+"\n"), 0644)
 }

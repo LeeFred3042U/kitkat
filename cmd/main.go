@@ -191,6 +191,16 @@ var commands = map[string]CommandFunc{
 }
 
 func main() {
+	if len(os.Args) >= 4 && os.Args[1] == "branch" && (os.Args[2] == "-m" || os.Args[2] == "--move") {
+		newName := os.Args[3]
+		err := core.RenameCurrentBranch(newName)
+		if err != nil {
+			fmt.Println("Error renaming branch:", err)
+			os.Exit(1)
+		}
+		fmt.Println("Branch renamed to", newName)
+		return
+	}
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: kitkat <command> [args]")
 		return
