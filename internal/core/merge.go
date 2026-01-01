@@ -12,6 +12,15 @@ import (
 // Merge attempts to merge the given branch into the current branch
 // Currently only supports fast-forward merges
 func Merge(branchToMerge string) error {
+	// Pre-flight check to prevent overwriting local changes
+	dirty, err := IsWorkDirDirty()
+	if err != nil {
+		return err
+	}
+	if dirty {
+		return fmt.Errorf("your local changes would be overwritten by merge")
+	}
+
 	// Getting the commit hash of the branch to merge
 	branchPath := filepath.Join(headsDir, branchToMerge)
 	featureHeadHashBytes, err := os.ReadFile(branchPath)
@@ -55,7 +64,7 @@ func Merge(branchToMerge string) error {
 
 	// Update the working directory and index to match the new HEAD state
 	fmt.Printf("Updating files to match %s...\n", featureHeadHash[:7])
-	err = updateWorkspaceAndIndex(featureHeadHash)
+	err = UpdateWorkspaceAndIndex(featureHeadHash)
 	if err != nil {
 		// Attempt to roll back the branch pointer on failure
 		os.WriteFile(currentBranchFile, []byte(currentHeadHash), 0644)
@@ -64,42 +73,4 @@ func Merge(branchToMerge string) error {
 
 	fmt.Printf("Merge successful. Fast-forwarded to %s\n", featureHeadHash)
 	return nil
-}
-
-// A helper to reset the working directory and index to a specific commit
-// Shared logic between checkout and merge
-func updateWorkspaceAndIndex(commitHash string) error {
-	commit, err := storage.FindCommit(commitHash)
-	if err != nil {
-		return err
-	}
-	targetTree, err := storage.ParseTree(commit.TreeHash)
-	if err != nil {
-		return err
-	}
-
-	// Delete files from the current index that are not in the target tree
-	currentIndex, _ := storage.LoadIndex()
-	for path := range currentIndex {
-		if _, existsInTarget := targetTree[path]; !existsInTarget {
-			os.Remove(path)
-		}
-	}
-
-	// Write/update files from the target tree
-	for path, hash := range targetTree {
-		content, err := storage.ReadObject(hash)
-		if err != nil {
-			return err
-		}
-		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-			return err
-		}
-		if err := os.WriteFile(path, content, 0644); err != nil {
-			return err
-		}
-	}
-
-	// Update the index to match the new tree
-	return storage.WriteIndex(targetTree)
 }
