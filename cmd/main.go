@@ -131,6 +131,20 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Error:", err)
 		}
 	},
+	"reset": func(args []string) {
+		if len(args) < 2 {
+			fmt.Println("Usage: kitkat reset --hard <commit-hash>")
+			return
+		}
+		if args[0] != "--hard" {
+			fmt.Println("Error: only 'reset --hard' is currently supported")
+			fmt.Println("Usage: kitkat reset --hard <commit-hash>")
+			return
+		}
+		if err := core.ResetHard(args[1]); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
 	"ls-files": func(args []string) {
 		if err := core.ListFiles(); err != nil {
 			fmt.Println("Error:", err)
@@ -156,12 +170,6 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"tag": func(args []string) {
-		if len(args) > 0 && (args[0] == "--list" || args[0] == "-l") {
-			if err := core.ListTags(); err != nil {
-				fmt.Println("Error:", err)
-			}
-			return
-		}
 		if len(args) < 2 {
 			fmt.Println("Usage: kitkat tag <tag-name> <commit-id>")
 			return
