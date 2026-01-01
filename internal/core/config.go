@@ -90,12 +90,12 @@ func GetConfig(key string) (string, bool, error) {
 
 // PrintAllConfig prints all key-value pairs in the config file
 func PrintAllConfig() error {
-    config, err := readConfig()
-    if err != nil {
-        return err
-    }
-    for k, v := range config {
-        fmt.Printf("%s = %s\n", k, v)
-    }
-    return nil
+	config, err := readConfig()
+	if err != nil {
+		return err
+	}
+	for k, v := range config {
+		fmt.Printf("%s = %s\n", k, v)
+	}
+	return nil
 }
