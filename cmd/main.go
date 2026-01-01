@@ -108,13 +108,17 @@ var commands = map[string]CommandFunc{
 	},
 	"checkout": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitkat checkout <branch-name | file-path>")
+			fmt.Println("Usage: kitkat checkout [-b] <branch-name> | <file-path>")
 			return
 		}
-		if len(args) >= 2 && args[0] == "-b" {
+		if args[0] == "-b" {
+			if len(args) != 2 {
+				fmt.Println("Usage: kitkat checkout -b <branch-name>")
+				return
+			}
 			name := args[1]
 			if core.IsBranch(name) {
-				fmt.Println("Error: Branch already exists")
+				fmt.Printf("Error: Branch '%s' already exists\n", name)
 				return
 			}
 			if err := core.CreateBranch(name); err != nil {
