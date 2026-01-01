@@ -35,6 +35,18 @@ var commands = map[string]CommandFunc{
 			}
 		}
 	},
+	"rm": func(args []string) {
+		if len(args) < 1 {
+			fmt.Println("Usage: kitkat rm <file>")
+			return
+		}
+		filename := args[0]
+		if err := core.RemoveFile(filename); err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		fmt.Printf("Removed '%s'\n", filename)
+	},
 	"commit": func(args []string) {
 		if len(args) < 2 {
 			fmt.Println("Usage: kitkat commit <-m | -am> <message>")
@@ -78,10 +90,32 @@ var commands = map[string]CommandFunc{
 	},
 	"log": func(args []string) {
 		oneline := false
-		if len(args) > 0 && args[0] == "--oneline" {
-			oneline = true
+		limit := -1
+		i := 0
+		for i < len(args) {
+			switch args[i] {
+			case "--oneline":
+				oneline = true
+				i++
+			case "-n":
+				if i+1 >= len(args) {
+					fmt.Println("Error: -n requires a positive integer argument")
+					return
+				}
+				var n int
+				_, err := fmt.Sscanf(args[i+1], "%d", &n)
+				if err != nil || n <= 0 {
+					fmt.Println("Error: -n requires a positive integer argument")
+					return
+				}
+				limit = n
+				i += 2
+			default:
+				fmt.Printf("Error: unknown flag %s\n", args[i])
+				return
+			}
 		}
-		if err := core.ShowLog(oneline); err != nil {
+		if err := core.ShowLog(oneline, limit); err != nil {
 			fmt.Println("Error:", err)
 		}
 	},
@@ -95,20 +129,30 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Error:", err)
 		}
 	},
-	"branch": func(args []string) {
-		if len(args) == 0 {
-			if err := core.ListBranches(); err != nil {
-				fmt.Println("Error:", err)
-			}
-			return
-		}
-		if err := core.CreateBranch(args[0]); err != nil {
-			fmt.Println("Error:", err)
-		}
-	},
+
 	"checkout": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitkat checkout <branch-name | file-path>")
+			fmt.Println("Usage: kitkat checkout [-b] <branch-name> | <file-path>")
+			return
+		}
+		if args[0] == "-b" {
+			if len(args) != 2 {
+				fmt.Println("Usage: kitkat checkout -b <branch-name>")
+				return
+			}
+			name := args[1]
+			if core.IsBranch(name) {
+				fmt.Printf("Error: Branch '%s' already exists\n", name)
+				return
+			}
+			if err := core.CreateBranch(name); err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+			if err := core.CheckoutBranch(name); err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
 			return
 		}
 		name := args[0]
@@ -131,9 +175,29 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Error:", err)
 		}
 	},
-	"ls-files": func(args []string) {
-		if err := core.ListFiles(); err != nil {
+	"reset": func(args []string) {
+		if len(args) < 2 {
+			fmt.Println("Usage: kitkat reset --hard <commit-hash>")
+			return
+		}
+		if args[0] != "--hard" {
+			fmt.Println("Error: only 'reset --hard' is currently supported")
+			fmt.Println("Usage: kitkat reset --hard <commit-hash>")
+			return
+		}
+		if err := core.ResetHard(args[1]); err != nil {
 			fmt.Println("Error:", err)
+		}
+	},
+	"ls-files": func(args []string) {
+		entries, err := core.LoadIndex()
+		if err != nil {
+			fmt.Println("Error loading index:", err)
+			return
+		}
+
+		for _, entry := range entries {
+			fmt.Println(entry.Path)
 		}
 	},
 	"clean": func(args []string) {
@@ -198,6 +262,7 @@ func main() {
 	cmd, args := os.Args[1], os.Args[2:]
 	if handler, ok := commands[cmd]; ok {
 		handler(args)
+
 	} else {
 		fmt.Println("Unknown command:", cmd)
 		core.PrintGeneralHelp()

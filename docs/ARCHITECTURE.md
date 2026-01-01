@@ -1,7 +1,3 @@
-# KitKat Architecture & Design
-
-This document details the internal design of KitKat.
-
 ## 1. Repository Initialization
 Logic for creating a new repository structure (`.kitkat` folders, HEAD, etc.).
 
@@ -29,3 +25,8 @@ The process is split into two phases:
    Directory against the Index.
 
 ![Status Command Flow](architecture/status/status.png)
+## Branch Command
+
+Logic for listing and creating branches.
+
+![Branch Flow](architecture/branch/branch.png)
