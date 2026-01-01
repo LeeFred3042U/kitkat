@@ -50,6 +50,10 @@ var helpMessages = map[string]CommandHelp{
 		Summary: "Get and set repository or global options.",
 		Usage:   "Usage: kitkat config --global <key> <value>\n\nSets a global configuration value that will be used for all repositories.",
 	},
+	"status": {
+		Summary: "Show information for the state of working directory",
+		Usage:   "Usage: kitkat status\n\nShow the current branch, changes to be committed, changes not staged for commit and untracked files.",
+	},
 }
 
 // Displays the main help message with a list of all commands
