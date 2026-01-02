@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 )
 
 const tagsDir = ".kitkat/refs/tags"
@@ -20,5 +21,46 @@ func CreateTag(tagName, commitID string) error {
 	}
 
 	fmt.Printf("Tag '%s' created for commit %s\n", tagName, commitID)
+	return nil
+}
+
+// ListTags returns all tag names stored in .kitkat/refs/tags
+func ListTags() ([]string, error) {
+
+	if _, err := os.Stat(tagsDir); err != nil {
+		if os.IsNotExist(err) {
+			return []string{}, nil
+		}
+		return nil, err
+	}
+
+	entries, err := os.ReadDir(tagsDir)
+	if err != nil {
+		return nil, err
+	}
+
+	var tags []string
+	for _, entry := range entries {
+
+		if entry.IsDir() {
+			continue
+		}
+		tags = append(tags, entry.Name())
+	}
+
+	sort.Strings(tags)
+	return tags, nil
+}
+
+// PrintTags prints all tags, one per line
+func PrintTags() error {
+	tags, err := ListTags()
+	if err != nil {
+		return err
+	}
+
+	for _, tag := range tags {
+		fmt.Println(tag)
+	}
 	return nil
 }
