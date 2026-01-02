@@ -8,87 +8,112 @@ Whether you are a student looking for your first open-source contribution or a s
 
 We have organized contributions into three tracks. Please choose one that matches your interest:
 
-### Track 1: Beginner Code (Good First Issues)
-Perfect for learning Go and getting comfortable with the codebase.
-* **Goal:** Implement simple commands that interact with the existing index/storage.
-* **Examples:** `kitkat rm`, `kitkat mv`, `kitkat log -n`, `kitkat version`.
-* **Skills:** Basic Go, File I/O.
+## 🚦 Pick Your Track
 
-### Track 2: Visual Documentation (No Code)
-Perfect for those who want to understand the architecture without writing Go.
-* **Goal:** Create PlantUML diagrams explaining how KitKat works.
-* **Examples:** Diagramming the "Branching" logic, the "Status" categorization flow, or the "Myers Diff" algorithm.
-* **Skills:** Logic, PlantUML, Technical Writing.
+We use labels to show how hard an issue is. Choose one that fits you.
 
-### Track 3: Intermediate
-For contributors who want deep technical challenges.
-* **Goal:** Implement core version control algorithms.
-* **Examples:** `kitkat reset --hard`, `kitkat stash`, `kitkat blame`.
-* **Skills:** Algorithms (Graphs/Trees), Data Structures, Systems Programming.
+### Track 1: Easy (Start Here)
+**Labels:** `Easy` `documentation` `good first issue`
+Great if you are new to Go or Open Source
+* **What you do:** Fix typos, add simple CLI commands, update `README.md`
+* **Example:** "Fix the help message for `rm`"
 
+### Track 2: Medium (The Real Work)
+**Labels:** `Medium` `bug` `core`
+Great if you know some Go and want to build features.
+* **What you do:** Add new logic, fix standard bugs, handle flags.
+* **Example:** "Implement `kitkat log -n 5`"
+
+### Track 3: Hard (Core Logic)
+**Labels:** `Hard` `core`
+For people who can think it through
+* **What you do:** Graph traversal, file locking, hashing, binary formats
+* **Example:** "Implement `reset --hard` with tree traversal"
+
+> Note: This is not applied everytime
 ---
 
-## Getting Started
+
+## Workflow (How to Contribute)
+
+- Go to the Issues tab or click [this](https://github.com/LeeFred3042U/kitkat/issues). Look for a label (Easy, Medium, etc) 
+- Comment: "I want to work on this!"
+- When you are assigned the issue by the maintainer only then continue
+
 
 ### Prerequisites
 * **Go 1.24+** installed (Check `go.mod` for the exact version)
 * A text editor (VS Code recommended)
 
-### Setup
-1. **Fork** this repository.
+## Setup
+
+### 1. Install Go
+
+* Make sure you have **Go 1.24+**.
+* Check with: `go version`
+
+1. **Fork** this repo (Click the button top-right)
+    - it looks like this
+
+    - ![alt text](image-1.png)
+
 2. **Clone** your fork:
 ```bash
- git clone https://github.com/LeeFred3042U/kitkat.git
+ git clone https://github.com/username/kitkat.git
  cd kitkat
 ```
 
-### Build the project
 
-```bash
-go build -o kitkat ./cmd/main.go
-```
-
-### Verify it runs
-
-```bash
-./kitkat init
-./kitkat help
-```
-
-## Workflow
-
-1. **Find an Issue:** Hunt for labels like `good first issue` or `documentation`.
-2. **Create a Branch:** Use a descriptive name for your branch.
+2. **Create a Branch:** 
+    - Use a descriptive name for your branch
+    - Do not work on main 
+    - Make a new branch
 ```bash
 git checkout -b feat/implement-rm-command
 # or
 git checkout -b docs/add-status-diagram
 ```
 
-
-3. **Make Changes:** Write clean, idiomatic Go code. If you are new to Go, feel free to ask for help in the PR!
-4. **Test:** Manual testing is required. Please include a **screenshot** or **terminal output** in your Pull Request description proving the command works as expected.
-5. **Push & PR:** Open a Pull Request, keep the description concise, and reference the issue number (e.g., `Fixes #1`).
-
-## Code Style
-
-Run the Go formatter before committing:
+3. **Build** the project
 
 ```bash
-go fmt ./...
+go build -o kitkat ./cmd/main.go
 ```
 
-* Keep functions short and readable.
-* Comment any logic that is complex, especially in `internal/core`.
+4. **Verify** if it runs
 
-## Pull Request Verification Standard (MANDATORY)
+```bash
+./kitkat init
+./kitkat help
+```
 
-We require **Proof of Work** for every Pull Request. "It works on my machine" is not enough.
+5. **Make Changes(for code):** 
+    - Write clean, idiomatic Go code 
+    - If you are new to Go, feel free to ask for help in the PR!
+   **documentation:**
+    - Work as stated in the issue
+    - keep check for typos
+
+
+6. **Test:** Manual testing is required 
+    - Please include (if code changes were made, else no need) a **screenshot** or **terminal output** or **screen recording** in your Pull Request description proving the command works as expected
+    - run `go fmt ./...`
+    - before you commit, else we have issues
+
+5. **Push & PR:** 
+    - Go to GitHub and open a Pull Request, keep the description concise, and reference the issue number (e.g., `Fixes #1`)
+    - The title should be named as the issue title which is fixed by you
+
+
+## Pull Request Verification Standard (MANDATORY) [only for code changes]
+
+We require **Proof of Work** for every Pull Request 
+"It works on my machine" is not enough
 You must include a **Screenshot** or **Terminal Output** in your PR description showing the command running successfully.
 
 **Acceptable Example (Terminal Output):**
 
-> I tested the `help` command. Here is the output of terminal showing the file being removed:
+> I tested the `help` command. Here is the output of terminal showing it
 ```bash
 [terminal@terminal kitkat] $ ./kitkat help
 usage: kitkat <command> [arguments]
@@ -111,11 +136,6 @@ OR
 > I tested `add` and `commit` command(since both go together). Here is the output of terminal shown in a screenshot
 
 ![alt text](image.png)
-
-**Unacceptable Examples:**
-* "Tested manually."
-* "It works."
-* (No description at all)
 
 ---
 

@@ -9,6 +9,7 @@
 *.dylib
 *.test
 *.out
+*.sh
 
 # Go module stuff – keep go.mod/sum (they're source)
 # (So nothing to ignore here)
