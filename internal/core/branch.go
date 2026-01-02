@@ -92,3 +92,27 @@ func ListBranches() error {
 
 	return nil
 }
+
+func RenameCurrentBranch(newName string) error {
+	headPath := ".kitkat/HEAD"
+	headContent, err := os.ReadFile(headPath)
+	if err != nil {
+		return err
+	}
+	headStr := strings.TrimSpace(string(headContent))
+	const refPrefix = "ref: refs/heads/"
+	if !strings.HasPrefix(headStr, refPrefix) {
+		return errors.New("HEAD is not pointing to a branch")
+	}
+	oldName := strings.TrimPrefix(headStr, refPrefix)
+	oldRef := filepath.Join(".kitkat", "refs", "heads", oldName)
+	newRef := filepath.Join(".kitkat", "refs", "heads", newName)
+
+	if _, err := os.Stat(newRef); err == nil {
+		return fmt.Errorf("branch '%s' already exists", newName)
+	}
+	if err := os.Rename(oldRef, newRef); err != nil {
+		return err
+	}
+	return os.WriteFile(headPath, []byte(refPrefix+newName+"\n"), 0644)
+}
