@@ -55,7 +55,7 @@ func CreateBranch(name string) error {
 func IsBranch(name string) bool {
 	branchPath := filepath.Join(headsDir, name)
 	if _, err := os.Stat(branchPath); err == nil {
-		
+
 		return true
 	}
 	return false
