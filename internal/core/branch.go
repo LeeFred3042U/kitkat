@@ -110,7 +110,7 @@ func RenameCurrentBranch(newName string) error {
 	newRef := filepath.Join(".kitkat", "refs", "heads", newName)
 
 	if _, err := os.Stat(newRef); err == nil {
-		return errors.New("branch name already exists")
+		return fmt.Errorf("branch '%s' already exists", newName)
 	}
 	if err := os.Rename(oldRef, newRef); err != nil {
 		return err
