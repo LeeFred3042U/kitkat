@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/models"
 )
@@ -77,6 +78,7 @@ func GetLastCommit() (models.Commit, error) {
 }
 
 // Search the commit log for a commit with a matching hash
+// Supports both full hashes and short hashes (prefix matching)
 func FindCommit(hash string) (models.Commit, error) {
 	file, err := os.Open(commitsPath)
 	if err != nil {
@@ -87,19 +89,35 @@ func FindCommit(hash string) (models.Commit, error) {
 	}
 	defer file.Close()
 
+	var matches []models.Commit
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		var commit models.Commit
 		if err := json.Unmarshal(scanner.Bytes(), &commit); err != nil {
 			continue
 		}
+		// Exact match (full hash)
 		if commit.ID == hash {
 			return commit, nil
+		}
+		// Prefix match (short hash)
+		if strings.HasPrefix(commit.ID, hash) {
+			matches = append(matches, commit)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
 		return models.Commit{}, err
+	}
+
+	// If we found exactly one prefix match, return it
+	if len(matches) == 1 {
+		return matches[0], nil
+	}
+
+	// If we found multiple matches, it's ambiguous
+	if len(matches) > 1 {
+		return models.Commit{}, fmt.Errorf("ambiguous short hash %s (matches %d commits)", hash, len(matches))
 	}
 
 	return models.Commit{}, fmt.Errorf("commit with hash %s not found", hash)
