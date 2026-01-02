@@ -307,6 +307,30 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Error:", err)
 		}
 	},
+	"branch": func(args []string) {
+		if args[0] == "-l" {
+			if err := core.ListBranches(); err != nil {
+				fmt.Println("Error:", err)
+			}
+			return
+		}
+		if args[0] == "-r" {
+			name := args[1]
+			if err := core.RenameCurrentBranch(name); err != nil {
+				fmt.Println("Error:", err)
+			}
+			return
+		}
+		name := args[0]
+		if core.IsBranch(name) {
+			fmt.Printf("Error: Branch '%s' already exists\n", name)
+			return
+		}
+		if err := core.CreateBranch(name); err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+	},
 }
 
 // printCommitResult formats and prints the commit result with summary
