@@ -287,6 +287,15 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Usage: kitkat config --global <key> [<value>]")
 		}
 	},
+	"show-object": func(args []string) {
+		if len(args) != 1 {
+			fmt.Println("Usage: kitkat show-object <hash>")
+			return
+		}
+		if err := core.ShowObject(args[0]); err != nil {
+			fmt.Println("Error:", err)
+		}
+	},
 }
 
 // printCommitResult formats and prints the commit result with summary
