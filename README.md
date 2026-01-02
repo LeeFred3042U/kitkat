@@ -78,6 +78,7 @@ To get detailed usage information for a specific command, add the command's name
   * **Commit History**: View a log of all commits
   * **Branching & Merging**: Create and switch between branches, and perform fast-forward merges
   * **Status & Diff**: Check the status of your working directory and view colorized diffs
+  * **Ignore Patterns**: Use `.kitignore` to exclude files from tracking
   * **Global Config**: Set user information like name and email
 
 -----
@@ -187,15 +188,52 @@ Shows a simple list of all files currently in the staging area.
 
 ### `clean`
 
-Removes untracked files from the working directory. Requires a `-f` flag for safety.
+Removes untracked files from the working directory. Requires a `-f` flag for safety. By default, ignored files are preserved.
 
 ```sh
 # Show which files would be removed (dry run)
 ./kitkat clean
 
-# Forcefully remove untracked files
+# Forcefully remove untracked files (preserves ignored files)
 ./kitkat clean -f
+
+# Forcefully remove untracked files including ignored files
+./kitkat clean -f -x
 ```
+
+### `.kitignore`
+
+Create a `.kitignore` file in the repository root to specify patterns for files that should be ignored by kitkat.
+
+**Supported Features:**
+- Glob patterns (`*.log`, `*.txt`, `file?.dat`)
+- Directory patterns (`bin/`, `node_modules/`)
+- Recursive patterns (`**/*.class`, `**/temp`)
+- Comments (lines starting with `#`)
+- Blank lines (ignored)
+
+**Example `.kitignore`:**
+```
+# Ignore all log files
+*.log
+
+# Ignore build output
+bin/
+target/
+
+# Ignore dependencies
+node_modules/
+
+# Ignore temporary files
+*.tmp
+**/.cache
+```
+
+**Important Notes:**
+- Ignore rules only apply to untracked files
+- Files already tracked remain tracked even if they match ignore patterns
+- Invalid patterns are skipped with a warning
+- Missing `.kitignore` file is not an error
 
 ### `config`
 

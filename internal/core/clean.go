@@ -10,8 +10,16 @@ import (
 )
 
 // Removes untracked files from the working directory
-func Clean(dryRun bool) error {
+// If includeIgnored is false, ignored files are preserved
+// If includeIgnored is true, ignored files are also removed
+func Clean(dryRun bool, includeIgnored bool) error {
 	index, err := storage.LoadIndex()
+	if err != nil {
+		return err
+	}
+
+	// Load ignore patterns
+	ignorePatterns, err := LoadIgnorePatterns()
 	if err != nil {
 		return err
 	}
@@ -38,8 +46,20 @@ func Clean(dryRun bool) error {
 
 		// if not tracked, remove (or print if dry run)
 		if _, tracked := index[clean]; !tracked {
+			// Check if file is ignored
+			isIgnored := ShouldIgnore(clean, ignorePatterns, index)
+
+			// Skip ignored files unless -x flag is set
+			if isIgnored && !includeIgnored {
+				return nil
+			}
+
 			if dryRun {
-				fmt.Printf("Would remove %s\n", clean)
+				if isIgnored {
+					fmt.Printf("Would remove (ignored) %s\n", clean)
+				} else {
+					fmt.Printf("Would remove %s\n", clean)
+				}
 				return nil
 			}
 			fmt.Printf("Removing %s\n", clean)

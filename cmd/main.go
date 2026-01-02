@@ -236,13 +236,24 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"clean": func(args []string) {
-		if len(args) > 0 && args[0] == "-f" {
-			if err := core.Clean(false); err != nil {
+		force := false
+		includeIgnored := false
+
+		for _, arg := range args {
+			if arg == "-f" {
+				force = true
+			} else if arg == "-x" {
+				includeIgnored = true
+			}
+		}
+
+		if force {
+			if err := core.Clean(false, includeIgnored); err != nil {
 				fmt.Println("Error:", err)
 			}
 		} else {
 			fmt.Println("This will delete untracked files. Run 'kitkat clean -f' to proceed.")
-			if err := core.Clean(true); err != nil {
+			if err := core.Clean(true, includeIgnored); err != nil {
 				fmt.Println("Error:", err)
 			}
 		}

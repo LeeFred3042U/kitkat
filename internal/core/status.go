@@ -40,6 +40,12 @@ func Status() error {
 		return err
 	}
 
+	// Load ignore patterns
+	ignorePatterns, err := LoadIgnorePatterns()
+	if err != nil {
+		return err
+	}
+
 	// Prepare slices to hold the categorized changes
 	stagedChanges := []string{}
 	unstagedChanges := []string{}
@@ -84,6 +90,10 @@ func Status() error {
 
 		// If the file is not in the index, it's untracked
 		if !isTracked {
+			// Check if file should be ignored
+			if ShouldIgnore(cleanPath, ignorePatterns, index) {
+				return nil // Skip ignored files
+			}
 			untrackedFiles = append(untrackedFiles, cleanPath)
 			return nil
 		}

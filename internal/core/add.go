@@ -48,6 +48,12 @@ func AddAll() error {
 		return err
 	}
 
+	// Load ignore patterns
+	ignorePatterns, err := LoadIgnorePatterns()
+	if err != nil {
+		return err
+	}
+
 	// We need a way to track which files we see in the working directory
 	// A map is used for this, giving us O(1) average time complexity for lookups
 	filesInWorkDir := make(map[string]bool)
@@ -77,6 +83,11 @@ func AddAll() error {
 		// We only care about files, not directories
 		if info.IsDir() {
 			return nil
+		}
+
+		// Check if file should be ignored (but only if not already tracked)
+		if ShouldIgnore(cleanPath, ignorePatterns, index) {
+			return nil // Skip this file
 		}
 
 		// Mark this file as "seen" in the working directory
