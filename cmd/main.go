@@ -48,45 +48,75 @@ var commands = map[string]CommandFunc{
 		fmt.Printf("Removed '%s'\n", filename)
 	},
 	"commit": func(args []string) {
-		if len(args) < 2 {
-			fmt.Println("Usage: kitkat commit <-m | -am> <message>")
+		if len(args) < 1 {
+			fmt.Println("Usage: kitkat commit <-m | -am | --amend> <message>")
 			return
 		}
 
 		var message string
-		var commitFunc func(string) (models.Commit, string, error)
+		var isAmend bool
 
-		switch args[0] {
-		case "-am":
-			message = strings.Join(args[1:], " ")
-			commitFunc = core.CommitAll
-		case "-m":
-			message = strings.Join(args[1:], " ")
-			commitFunc = core.Commit
-		default:
+		// Check for --amend flag
+		if args[0] == "--amend" {
+			if len(args) < 3 || args[1] != "-m" {
+				fmt.Println("Usage: kitkat commit --amend -m <message>")
+				return
+			}
+			isAmend = true
+			message = strings.Join(args[2:], " ")
+		} else if len(args) < 2 {
 			fmt.Println("Usage: kitkat commit <-m | -am> <message>")
 			return
-		}
-
-		newCommit, summary, err := commitFunc(message)
-		if err != nil {
-			if err.Error() == "nothing to commit, working tree clean" {
-				fmt.Println(err.Error())
-			} else {
-				fmt.Println("Error:", err)
+		} else {
+			// Normal commit flow
+			switch args[0] {
+			case "-am":
+				message = strings.Join(args[1:], " ")
+				newCommit, summary, err := core.CommitAll(message)
+				if err != nil {
+					if err.Error() == "nothing to commit, working tree clean" {
+						fmt.Println(err.Error())
+					} else {
+						fmt.Println("Error:", err)
+					}
+					return
+				}
+				printCommitResult(newCommit, summary)
+				return
+			case "-m":
+				message = strings.Join(args[1:], " ")
+			default:
+				fmt.Println("Usage: kitkat commit <-m | -am | --amend> <message>")
+				return
 			}
-			return
 		}
 
-		headState, err := core.GetHeadState()
-		if err != nil {
-			// Fallback in case GetHeadState fails on the very first commit before ref exists
-			headData, _ := os.ReadFile(".kitkat/HEAD")
-			ref := strings.TrimSpace(string(headData))
-			headState = strings.TrimPrefix(ref, "ref: refs/heads/")
+		// Handle amend or normal commit
+		if isAmend {
+			newCommit, err := core.AmendCommit(message)
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+			headState, err := core.GetHeadState()
+			if err != nil {
+				headData, _ := os.ReadFile(".kitkat/HEAD")
+				ref := strings.TrimSpace(string(headData))
+				headState = strings.TrimPrefix(ref, "ref: refs/heads/")
+			}
+			fmt.Printf("[%s %s] %s (amended)\n", headState, newCommit.ID[:7], newCommit.Message)
+		} else {
+			newCommit, summary, err := core.Commit(message)
+			if err != nil {
+				if err.Error() == "nothing to commit, working tree clean" {
+					fmt.Println(err.Error())
+				} else {
+					fmt.Println("Error:", err)
+				}
+				return
+			}
+			printCommitResult(newCommit, summary)
 		}
-
-		fmt.Printf("[%s %s] %s\n%s\n", headState, newCommit.ID[:7], newCommit.Message, summary)
 	},
 	"log": func(args []string) {
 		oneline := false
@@ -257,6 +287,17 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Usage: kitkat config --global <key> [<value>]")
 		}
 	},
+}
+
+// printCommitResult formats and prints the commit result with summary
+func printCommitResult(newCommit models.Commit, summary string) {
+	headState, err := core.GetHeadState()
+	if err != nil {
+		headData, _ := os.ReadFile(".kitkat/HEAD")
+		ref := strings.TrimSpace(string(headData))
+		headState = strings.TrimPrefix(ref, "ref: refs/heads/")
+	}
+	fmt.Printf("[%s %s] %s\n%s\n", headState, newCommit.ID[:7], newCommit.Message, summary)
 }
 
 func main() {
