@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/storage"
-
-	"io/ioutil"
 )
 
 const headsDir = ".kitkat/refs/heads"
@@ -96,7 +94,7 @@ func ListBranches() error {
 
 func RenameCurrentBranch(newName string) error {
 	headPath := ".kitkat/HEAD"
-	headContent, err := ioutil.ReadFile(headPath)
+	headContent, err := os.ReadFile(headPath)
 	if err != nil {
 		return err
 	}
@@ -115,5 +113,5 @@ func RenameCurrentBranch(newName string) error {
 	if err := os.Rename(oldRef, newRef); err != nil {
 		return err
 	}
-	return ioutil.WriteFile(headPath, []byte(refPrefix+newName+"\n"), 0644)
+	return os.WriteFile(headPath, []byte(refPrefix+newName+"\n"), 0644)
 }
