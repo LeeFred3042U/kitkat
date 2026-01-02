@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,6 +14,11 @@ import (
 // If includeIgnored is false, ignored files are preserved
 // If includeIgnored is true, ignored files are also removed
 func Clean(dryRun bool, includeIgnored bool) error {
+	// Guard: ensure we're inside a kitkat repo
+	if _, err := os.Stat(RepoDir); os.IsNotExist(err) {
+		return errors.New("not a kitkat repository (run `kitkat init`)")
+	}
+
 	index, err := storage.LoadIndex()
 	if err != nil {
 		return err
