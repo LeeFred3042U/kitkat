@@ -52,6 +52,8 @@ For people who can think it through
 * Make sure you have **Go 1.24+**.
 * Check with: `go version`
 
+### 2. Fork and Clone
+
 1. **Fork** this repo (Click the button top-right)
     - it looks like this
 
@@ -59,51 +61,99 @@ For people who can think it through
 
 2. **Clone** your fork:
 ```bash
- git clone https://github.com/username/kitkat.git
- cd kitkat
+git clone https://github.com/username/kitkat.git
+cd kitkat
 ```
 
+### 3. Add Upstream Remote
 
-2. **Create a Branch:** 
-    - Use a descriptive name for your branch
-    - Do not work on main 
-    - Make a new branch
+To keep your fork synchronized with the main repository, add the original repository as an upstream remote:
+
+```bash
+git remote add upstream https://github.com/LeeFred3042U/kitkat.git
+```
+
+Verify your remotes:
+```bash
+git remote -v
+```
+
+You should see:
+```
+origin    https://github.com/username/kitkat.git (fetch)
+origin    https://github.com/username/kitkat.git (push)
+upstream  https://github.com/LeeFred3042U/kitkat.git (fetch)
+upstream  https://github.com/LeeFred3042U/kitkat.git (push)
+```
+
+### 4. Sync Your Fork
+
+Before starting work on a new feature, always sync your fork with upstream:
+
+```bash
+# Switch to your main branch
+git checkout main
+
+# Pull latest changes from upstream
+git pull upstream main
+
+# Push updates to your fork
+git push origin main
+```
+
+> **Pro Tip:** Run these commands regularly to stay up to date and avoid merge conflicts!
+
+### 5. Create a Branch
+
+- Use a descriptive name for your branch
+- Do not work on main 
+- Make a new branch from the updated main
+
 ```bash
 git checkout -b feat/implement-rm-command
 # or
 git checkout -b docs/add-status-diagram
 ```
 
-3. **Build** the project
+### 6. Build the Project
 
 ```bash
 go build -o kitkat ./cmd/main.go
 ```
 
-4. **Verify** if it runs
+### 7. Verify if it Runs
 
 ```bash
 ./kitkat init
 ./kitkat help
 ```
 
-5. **Make Changes(for code):** 
-    - Write clean, idiomatic Go code 
-    - If you are new to Go, feel free to ask for help in the PR!
-   **documentation:**
-    - Work as stated in the issue
-    - keep check for typos
+### 8. Make Changes
 
+**For code:**
+- Write clean, idiomatic Go code 
+- If you are new to Go, feel free to ask for help in the PR!
 
-6. **Test:** Manual testing is required 
-    - Please include (if code changes were made, else no need) a **screenshot** or **terminal output** or **screen recording** in your Pull Request description proving the command works as expected
-    - run `go fmt ./...`
-    - before you commit, else we have issues
+**For documentation:**
+- Work as stated in the issue
+- Keep check for typos
 
-5. **Push & PR:** 
-    - Go to GitHub and open a Pull Request, keep the description concise, and reference the issue number (e.g., `Fixes #1`)
-    - The title should be named as the issue title which is fixed by you
+### 9. Test
 
+Manual testing is required 
+- Please include (if code changes were made, else no need) a **screenshot** or **terminal output** or **screen recording** in your Pull Request description proving the command works as expected
+- Run `go fmt ./...` before you commit, else we have issues
+
+### 10. Push & PR
+
+- Push your branch to your fork:
+```bash
+git push origin feat/implement-rm-command
+```
+
+- Go to GitHub and open a Pull Request
+- Keep the description concise, and reference the issue number (e.g., `Fixes #1`)
+- The title should be named as the issue title which is fixed by you
 
 ## Pull Request Verification Standard (MANDATORY) [only for code changes]
 
@@ -141,7 +191,7 @@ OR
 
 # Editing & Creating Architecture Diagrams (PlantUML)
 
-KitKat’s architecture diagrams are stored in `.puml` format and exported as `.png`.
+KitKat's architecture diagrams are stored in `.puml` format and exported as `.png`.
 If you are **creating new diagrams**, follow the same workflow used for editing existing ones.
 
 All source files live under:
