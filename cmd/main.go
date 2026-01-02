@@ -156,7 +156,7 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"tag": func(args []string) {
-		if len(args) == 1 && (args[0] == "--list" ) {
+		if len(args) == 1 && (args[0] == "--list") {
 			if err := core.PrintTags(); err != nil {
 				fmt.Println("Error:", err)
 			}
