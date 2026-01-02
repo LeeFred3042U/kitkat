@@ -14,7 +14,7 @@ func ShowLog(oneline bool, limit int) error {
 	currentCommit, err := GetHeadCommit()
 	if err != nil {
 		// Handle the case where the repo is empty or HEAD is invalid
-		return nil 
+		return nil
 	}
 
 	commitHash := currentCommit.ID
