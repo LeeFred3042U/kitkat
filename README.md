@@ -1,13 +1,13 @@
-# Kitkat 🍫
+# kitkat 
 
 [![SWOC Season 6](https://img.shields.io/badge/SWOC-Season%206-blue?style=for-the-badge&logo=codeforces)](https://swoc.tech)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Kitkat** is a lightweight, learning-focused Git clone written in Go. It is designed to help developers understand the internal mechanics of version control by implementing core Git logic from scratch.
+**kitkat** is a lightweight, learning-focused Git clone written in Go. It is designed to help developers understand the internal mechanics of version control by implementing core Git logic from scratch.
 
 ---
 
-## 🚀 Quick Start (TL;DR)
+## Quick Start (TL;DR)
 
 Get `kitkat` up and running on your local machine:
 
@@ -34,23 +34,23 @@ go build -o kitkat ./cmd/main.go
 
 ---
 
-## ⚙️ How it Works (Internal Design)
+## How it Works (Internal Design)
 
-Kitkat mimics the core principles of Git, operating on **snapshots** built from three key objects: **Blobs** (content), **Trees** (structure), and **Commits** (history).
+kitkat mimics the core principles of Git, operating on **snapshots** built from three key objects: **Blobs** (content), **Trees** (structure), and **Commits** (history).
 
 Instead of high-level abstractions, we encourage you to explore the internal architecture and command logic in our dedicated documentation:
-👉 **[Read the Architecture Guide](./docs/ARCHITECTURE.md)**
+**[Read the Architecture Guide](./docs/ARCHITECTURE.md)**
 
 ---
 
-## ⚖️ What’s Supported vs. What’s Not
+## What’s Supported vs. What’s Not
 
-Kitkat implements a functional subset of Git's "Plumbing" and "Porcelain" commands.
+kitkat implements a functional subset of Git's "Plumbing" and "Porcelain" commands.
 
 > [!IMPORTANT]
-> **A Note on Flags:** Kitkat implements a **strict subset of Git flags**. For example, we support `commit -m` but **not** flags like `--author`, `--date`, or others. This restricted flag support applies to all commands across the project.
+> **A Note on Flags:** kitkat implements a **strict subset of Git flags**. For example, we support `commit -m` but **not** flags like `--author`, `--date`, or others. This restricted flag support applies to all commands across the project.
 
-| Feature | Supported ✅ | Not Supported ❌ |
+| Feature | Supported  | Not Supported  |
 | :--- | :--- | :--- |
 | **Local Workflow** | Init, Add, Commit, Status | Staging specific hunks, Interactive add |
 | **History** | Log, Branching, Checkout | Rebase, Cherry-pick, Reflog |
@@ -59,7 +59,7 @@ Kitkat implements a functional subset of Git's "Plumbing" and "Porcelain" comman
 
 ---
 
-## 🛠 Command Reference Summary
+## Command Reference Summary
 
 | Command | Action | Usage Example |
 | :--- | :--- | :--- |
@@ -77,7 +77,7 @@ Kitkat implements a functional subset of Git's "Plumbing" and "Porcelain" comman
 
 ---
 
-## 🔍 Key Features & Usage
+## Key Features & Usage
 
 ### Ignoring Files (`.kitignore`)
 Create a `.kitignore` file in the root to exclude patterns:
@@ -96,16 +96,16 @@ You can get detailed information for any command directly from the CLI:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributors who want to learn! Whether you're fixing a bug or improving docs, your help is appreciated.
 Please read our **[CONTRIBUTING.md](./CONTRIBUTING.md)** for developer setup, coding standards, and contribution guidelines before submitting a Pull Request.
 
 ---
 
-## 📖 Reference Material
+## Reference Material
 
-To understand how Kitkat maps to the original Git design philosophy, refer to the "OG" technical documentation:
+To understand how kitkat maps to the original Git design philosophy, refer to the "OG" technical documentation:
 
 * **[Git Technical Documentation](https://github.com/git/git/blob/master/Documentation/technical/index.txt)**
 * **[Git: The Information Manager from Hell](https://github.com/git/git/blob/master/Documentation/RelNotes/0.99.txt)**
@@ -113,4 +113,4 @@ To understand how Kitkat maps to the original Git design philosophy, refer to th
 ---
 
 > [!CAUTION]
-> **Disclaimer:** Kitkat is a toy project for educational purposes. Do not use it as your primary version control system for production work.
+> **Disclaimer:** kitkat is a toy project for educational purposes. Do not use it as your primary version control system for production work.
