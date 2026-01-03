@@ -160,8 +160,15 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"diff": func(args []string) {
-		if err := core.Diff(); err != nil {
+		staged := false
+		if len(args) > 0 {
+			if args[0] == "--cached" || args[0] == "--staged" {
+				staged = true
+			}
+		}
+		if err := core.Diff(staged); err != nil {
 			fmt.Println("Error:", err)
+			return
 		}
 	},
 

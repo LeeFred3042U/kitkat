@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/diff"
@@ -44,7 +46,7 @@ func displayDiff(diffs []diff.Diff[string]) {
 
 // Diff calculates and displays the differences between the last commit and the current staging area (index)
 // It identifies which files have been added, deleted, or modified.
-func Diff() error {
+func Diff(staged bool) error {
 	// Retrieve the metadata for the most recent commit.
 	lastCommit, err := storage.GetLastCommit()
 	if err != nil {
@@ -56,61 +58,178 @@ func Diff() error {
 		return err
 	}
 
-	// From the commit, get the tree object which represents the state of the repository at that time
-	// This is a map of `filePath -> contentHash`
-	tree, err := storage.ParseTree(lastCommit.TreeHash)
-	if err != nil {
-		return err
-	}
-
 	// Load the current staging area into a map. This represents what will be in the *next* commit
 	index, err := storage.LoadIndex()
 	if err != nil {
 		return err
 	}
 
-	// First Loop: Iterate through files in the index to find additions and modifications
-	for path, indexHash := range index {
-		treeHash, ok := tree[path]
-		// If a file is in the index but not in the old tree, it's a new file.
-		if !ok {
-			fmt.Printf("%sAdded file: %s%s\n", colorBlue, path, colorReset)
-			// We could optionally show the full content of the new file here.
-			continue
+	if staged {
+
+		// From the commit, get the tree object which represents the state of the repository at that time
+		// This is a map of `filePath -> contentHash`
+		tree, err := storage.ParseTree(lastCommit.TreeHash)
+		if err != nil {
+			return err
 		}
 
-		// If the file exists in both, but the content hash is different, it has been modified
-		if indexHash != treeHash {
-			fmt.Printf("%sModified file: %s%s\n", colorBlue, path, colorReset)
+		// First Loop: Iterate through files in the index to find additions and modifications
+		for path, indexHash := range index {
+			treeHash, ok := tree[path]
+			// If a file is in the index but not in the old tree, it's a new file.
+			if !ok {
+				fmt.Printf("%sAdded file: %s%s\n", colorBlue, path, colorReset)
 
-			// Read the old and new content from the object store.
-			oldContent, err := storage.ReadObject(treeHash)
+				// Show content of added file (all lines are additions)
+				content, err := storage.ReadObject(indexHash)
+				if err != nil {
+					return err
+				}
+
+				contentStr := strings.TrimRight(string(content), "\n")
+				fileLines := strings.Split(contentStr, "\n")
+				emptyLines := []string{}
+
+				myers := diff.NewMyersDiff(emptyLines, fileLines)
+				diffs := myers.Diffs()
+				displayDiff(diffs)
+				continue
+			}
+
+			// If the file exists in both, but the content hash is different, it has been modified
+			if indexHash != treeHash {
+				fmt.Printf("%sModified file: %s%s\n", colorBlue, path, colorReset)
+
+				// Read the old and new content from the object store.
+				oldContent, err := storage.ReadObject(treeHash)
+				if err != nil {
+					return err
+				}
+				newContent, err := storage.ReadObject(indexHash)
+				if err != nil {
+					return err
+				}
+
+				// Split file content into lines to prepare for the diff algorithm
+				oldLines := strings.Split(string(oldContent), "\n")
+				newLines := strings.Split(string(newContent), "\n")
+
+				// Using the Myers algorithm to compute the differences
+				myers := diff.NewMyersDiff(oldLines, newLines)
+				diffs := myers.Diffs()
+
+				// Display the computed differences with color
+				displayDiff(diffs)
+			}
+		}
+
+		// Next Loop: Iterate through files in the old tree to find deletions.
+		for path := range tree {
+			// If a file was in the old tree but is no longer in the index, it has been deleted.
+			if _, ok := index[path]; !ok {
+				fmt.Printf("%sDeleted file: %s%s\n", colorBlue, path, colorReset)
+			}
+		}
+	} else {
+		// Case B: unstaged diff (Index vs Working Directory)
+		// Equivalent to `git diff` (not `--cached`)
+
+		for path, indexHash := range index {
+			// Read current working directory file
+			fileContent, err := os.ReadFile(path)
+			if err != nil {
+				// File deleted from working directory (but still staged)
+				fmt.Printf("%sDeleted (unstaged): %s%s\n", colorRed, path, colorReset)
+				continue
+			}
+
+			// Read staged content from index
+			indexContent, err := storage.ReadObject(indexHash)
+			if err != nil {
+				return fmt.Errorf("failed to read index object %s: %w", indexHash, err)
+			}
+
+			// Compare: working directory vs index (staged)
+			if string(fileContent) != string(indexContent) {
+				fmt.Printf("%sChanged (unstaged): %s%s\n", colorBlue, path, colorReset)
+
+				// Index content = "old" (what's staged)
+				// Working dir content = "new" (current changes)
+				indexLines := strings.Split(string(indexContent), "\n")
+				contentStr := strings.TrimRight(string(fileContent), "\n")
+				workDirLines := strings.Split(contentStr, "\n")
+
+				// Myers diff: staged (old) → working dir (new)
+				myers := diff.NewMyersDiff(indexLines, workDirLines)
+				diffs := myers.Diffs()
+				displayDiff(diffs)
+			}
+		}
+
+		// Untracked files: exist in working directory but not staged (recursive walk)
+		var untracked []string
+		err := filepath.WalkDir(".", func(path string, d os.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
-			newContent, err := storage.ReadObject(indexHash)
+
+			name := filepath.Base(path)
+
+			// Skip .kitkat directory
+			if name == ".kitkat" {
+				if d.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+
+			// Skip directories (continue walking into subdirs)
+			if d.IsDir() {
+				return nil
+			}
+
+			// Only process regular files
+			if !d.Type().IsRegular() {
+				return nil
+			}
+
+			// Get relative path for comparison with index
+			relPath, err := filepath.Rel(".", path)
 			if err != nil {
 				return err
 			}
 
-			// Split file content into lines to prepare for the diff algorithm
-			oldLines := strings.Split(string(oldContent), "\n")
-			newLines := strings.Split(string(newContent), "\n")
+			// File exists on disk but not in index = untracked/new
+			if _, ok := index[relPath]; !ok {
+				untracked = append(untracked, relPath)
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 
-			// Using the Myers algorithm to compute the differences
-			myers := diff.NewMyersDiff(oldLines, newLines)
+		// Show untracked file content (all lines are additions)
+		for _, path := range untracked {
+			content, err := os.ReadFile(path)
+			if err != nil {
+				continue
+			}
+
+			fmt.Printf("%s%sUntracked:%s %s\n", colorGreen, colorBlue, colorReset, path)
+
+			// Trim trailing newlines and split into lines
+			contentStr := strings.TrimRight(string(content), "\n")
+			fileLines := strings.Split(contentStr, "\n")
+			emptyLines := []string{}
+
+			// Myers diff: empty (old) → file content (new)
+			// All lines will show as green additions
+			myers := diff.NewMyersDiff(emptyLines, fileLines)
 			diffs := myers.Diffs()
 
 			// Display the computed differences with color
 			displayDiff(diffs)
-		}
-	}
-
-	// Next Loop: Iterate through files in the old tree to find deletions.
-	for path := range tree {
-		// If a file was in the old tree but is no longer in the index, it has been deleted.
-		if _, ok := index[path]; !ok {
-			fmt.Printf("%sDeleted file: %s%s\n", colorBlue, path, colorReset)
 		}
 	}
 
