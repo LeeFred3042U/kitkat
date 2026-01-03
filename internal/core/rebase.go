@@ -152,7 +152,9 @@ func RebaseContinue() error {
 	originalHash := parts[1]
 	originalCommit, _ := storage.FindCommit(originalHash)
 
-	if cmd == "pick" || cmd == "reword" {
+	// Use switch instead of if/else chain
+	switch cmd {
+	case "pick", "reword":
 		// Commit current index using original message
 		msg := originalCommit.Message
 
@@ -172,7 +174,8 @@ func RebaseContinue() error {
 				amendCommitMessage(head, newMsg)
 			}
 		}
-	} else if cmd == "squash" {
+
+	case "squash":
 		prevHead, _ := GetHeadCommit()
 		newMsg := prevHead.Message + "\n\n" + originalCommit.Message
 
@@ -571,7 +574,7 @@ func amendCommitMessage(commitID, newVal string) error {
 	}
 
 	content := fmt.Sprintf("tree %s\n%s\n%s", c.TreeHash, parentBlock, newVal)
-	newHash, err := saveObject("commit", []byte(content))
+	newHash, err := saveObject([]byte(content))
 	if err != nil {
 		return err
 	}
@@ -591,7 +594,7 @@ func amendCommit(prevHead models.Commit, newMsg string) error {
 	}
 
 	content := fmt.Sprintf("tree %s\n%s\n%s", treeHash, parentBlock, newMsg)
-	newHash, err := saveObject("commit", []byte(content))
+	newHash, err := saveObject([]byte(content))
 	if err != nil {
 		return err
 	}
@@ -599,7 +602,8 @@ func amendCommit(prevHead models.Commit, newMsg string) error {
 	return UpdateBranchPointer(newHash)
 }
 
-func saveObject(objType string, content []byte) (string, error) {
+// Removed unused 'objType' parameter
+func saveObject(content []byte) (string, error) {
 	// Manually hashing and saving, similar to storage/blob.go but for memory content
 	h := sha1.New()
 	h.Write(content)

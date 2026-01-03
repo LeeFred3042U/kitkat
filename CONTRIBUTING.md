@@ -61,7 +61,7 @@ For people who can think it through
 1. **Fork** this repo (Click the button top-right)
     - it looks like this
 
-    - ![alt text](image-1.png)
+    - ![alt text](assets/image-1.png)
 
 2. **Clone** your fork:
 ```bash
@@ -189,7 +189,7 @@ Use 'kitkat help <command>' for more information about a command
 OR
 > I tested `add` and `commit` command(since both go together). Here is the output of terminal shown in a screenshot
 
-![alt text](image.png)
+![alt text](assets/image.png)
 
 ---
 

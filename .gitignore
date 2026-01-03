@@ -22,11 +22,13 @@
 .vscode/
 .idea/
 *.log
+*.txt
 
 # Personal/text files
 hello.txt
 test_kitkat.sh
 kitkat_test_repo
+.kitignore
 
 dump_code.sh
 kitkat_project_code.txt

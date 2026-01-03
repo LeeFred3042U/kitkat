@@ -268,9 +268,10 @@ var commands = map[string]CommandFunc{
 		includeIgnored := false
 
 		for _, arg := range args {
-			if arg == "-f" {
+			switch arg {
+			case "-f":
 				force = true
-			} else if arg == "-x" {
+			case "-x":
 				includeIgnored = true
 			}
 		}
@@ -370,6 +371,15 @@ var commands = map[string]CommandFunc{
 		if err := core.CreateBranch(name); err != nil {
 			fmt.Println("Error:", err)
 			return
+		}
+	},
+	"mv": func(args []string) {
+		if len(args) != 2 {
+			fmt.Println("Usage: kitkat mv <old_path> <new_path>")
+			return
+		}
+		if err := core.MoveFile(args[0], args[1]); err != nil {
+			fmt.Println("Error:", err)
 		}
 	},
 }

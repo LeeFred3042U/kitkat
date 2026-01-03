@@ -48,6 +48,12 @@ func InitRepo() error {
 		return err
 	}
 
-	fmt.Printf("Initialized empty KitKat repository in ./%s/\n", RepoDir)
+	// Create default .kitignore to prevent self-tracking
+	ignoreContent := []byte(".DS_Store\nkitkat\nkitkat.exe\n")
+	if err := os.WriteFile(".kitignore", ignoreContent, 0644); err != nil {
+		return err
+	}
+
+	fmt.Printf("Initialized empty kitkat repository in ./%s/\n", RepoDir)
 	return nil
 }

@@ -18,7 +18,7 @@ func CreateTag(tagName, commitID string) error {
 	tagPath := filepath.Join(tagsDir, tagName)
 	// Checks if tag already exists.
 	if _, err := os.Stat(tagPath); err == nil {
-		return fmt.Errorf("Error: tag %s already exists", tagName)
+		return fmt.Errorf("error: tag %s already exists", tagName)
 	} else if !os.IsNotExist(err) {
 		return err
 	}

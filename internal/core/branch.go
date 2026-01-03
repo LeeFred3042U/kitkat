@@ -34,7 +34,7 @@ func readHEAD() (string, error) {
 // Create a new branch pointing to the current HEAD commit
 func CreateBranch(name string) error {
 	if IsBranch(name) {
-		return fmt.Errorf("branch '%s' already exists\n", name)
+		return fmt.Errorf("branch '%s' already exists", name)
 	}
 	commitHash, err := readHEAD()
 	if err != nil {
