@@ -15,11 +15,11 @@ var helpMessages = map[string]CommandHelp{
 	},
 	"add": {
 		Summary: "Add file contents to the index.",
-		Usage:   "Usage: kitkat add <file-path> | --all\n\nThis command adds file contents to the staging area.\nUse '--all' to stage all new, modified, and deleted files.",
+		Usage:   "Usage: kitkat add <file-path> | --all | -A\n\nThis command adds file contents to the staging area.\nUse '--all' or '-A' to stage all new, modified, and deleted files.",
 	},
 	"commit": {
 		Summary: "Record changes to the repository.",
-		Usage:   "Usage: kitkat commit <-m | -am> <message>\n\nCreates a new commit from the staging area.\nUse '-am' to automatically stage all tracked files before committing.",
+		Usage:   "Usage: kitkat commit <-m | -am | --amend> <message>\n\nCreates a new commit from the staging area.\nUse '-am' to automatically stage all tracked files before committing.\nUse '--amend' to modify the previous commit.",
 	},
 	"diff": {
 		Summary: "Show changes between the last commit and staging area",
@@ -27,9 +27,8 @@ var helpMessages = map[string]CommandHelp{
 	},
 	"log": {
 		Summary: "Show the commit history",
-		Usage:   "Usage: kitkat log [--oneline]\n\nDisplays the commit history for the current branch.\nUse '--oneline' for a compact, single-line view.",
+		Usage:   "Usage: kitkat log [--oneline] [-n <limit>]\n\nDisplays the commit history for the current branch.\nFlags:\n  --oneline   Compact, single-line view\n  -n <limit>  Limits output to N commits",
 	},
-
 	"tag": {
 		Summary: "Create a new tag for a commit",
 		Usage:   "Usage: kitkat tag <tag-name> <commit-id>\n\nCreates a new lightweight tag that points to the specified commit",
@@ -44,11 +43,31 @@ var helpMessages = map[string]CommandHelp{
 	},
 	"clean": {
 		Summary: "Remove untracked files from the working directory",
-		Usage:   "Usage: kitkat clean\n\nRemoves all files from the current directory that are not tracked by KitKat",
+		Usage:   "Usage: kitkat clean [-f] [-x]\n\nRemoves untracked files.\nFlags:\n  -f  Force deletion (required)\n  -x  Also delete ignored files",
 	},
 	"config": {
 		Summary: "Get and set repository or global options.",
 		Usage:   "Usage: kitkat config --global <key> <value>\n\nSets a global configuration value that will be used for all repositories.",
+	},
+	"reset": {
+		Summary: "Reset current HEAD to the specified state",
+		Usage:   "Usage: kitkat reset --hard <commit>\n\nResets the index and working tree. Any changes to tracked files in the working tree since <commit> are discarded.",
+	},
+	"checkout": {
+		Summary: "Switch branches or restore working tree files",
+		Usage:   "Usage: kitkat checkout <branch> or checkout -b <new-branch>\n\nSwitches to a branch. Use -b to create a new branch and switch to it.",
+	},
+	"show-object": {
+		Summary: "Provide content or type and size information for repository objects",
+		Usage:   "Usage: kitkat show-object <hash>\n\nShows the contents of the object identified by the hash.",
+	},
+	"branch": {
+		Summary: "List, create, or delete branches",
+		Usage:   "Usage: kitkat branch <name> or branch -m <new-name>\n\nCreates a new branch. Use -m to rename an existing branch.",
+	},
+	"mv": {
+		Summary: "Move or rename a file, a directory, or a symlink",
+		Usage:   "Usage: kitkat mv <old> <new>\n\nRenames the file/directory <old> to <new>.",
 	},
 }
 
@@ -57,7 +76,7 @@ func PrintGeneralHelp() {
 	fmt.Println("usage: kitkat <command> [arguments]")
 	fmt.Println("\nThese are the common KitKat commands:")
 	for name, help := range helpMessages {
-		fmt.Printf("   %-10s %s\n", name, help.Summary)
+		fmt.Printf("   %-12s %s\n", name, help.Summary)
 	}
 	fmt.Println("\nUse 'kitkat help <command>' for more information about a command")
 }
