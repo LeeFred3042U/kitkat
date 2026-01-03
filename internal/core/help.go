@@ -6,7 +6,7 @@ type CommandHelp struct {
 	Summary string
 	Usage   string
 }
- 
+
 var helpMessages = map[string]CommandHelp{
 	"init": {
 		Summary: "Initialize a new KitKat repository",
@@ -69,7 +69,7 @@ var helpMessages = map[string]CommandHelp{
 		Usage:   "Usage: kitkat mv <old> <new>\n\nRenames the file/directory <old> to <new>.",
 	},
 }
- 
+
 func PrintGeneralHelp() {
 	fmt.Println("usage: kitkat <command> [arguments]")
 	fmt.Println("\nThese are the common KitKat commands:")
@@ -78,7 +78,7 @@ func PrintGeneralHelp() {
 	}
 	fmt.Println("\nUse 'kitkat help <command>' for more information about a command")
 }
- 
+
 func PrintCommandHelp(command string) {
 	if help, ok := helpMessages[command]; ok {
 		fmt.Println(help.Usage)
