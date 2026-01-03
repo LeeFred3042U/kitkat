@@ -4,6 +4,10 @@ Thank you for your interest in contributing to **kitkat**! We are building an ed
 
 Whether you are a student looking for your first open-source contribution or a systems engineer wanting to solve complex algorithmic challenges, there is a place for you here.
 
+## 💬 Join Our Community
+
+Have questions? Want to discuss ideas or get help? Join our Discord server: **https://discord.gg/x6henXZs**
+
 ## Ways to Contribute
 
 We have organized contributions into three tracks. Please choose one that matches your interest:
@@ -132,7 +136,7 @@ go build -o kitkat ./cmd/main.go
 
 **For code:**
 - Write clean, idiomatic Go code 
-- If you are new to Go, feel free to ask for help in the PR!
+- If you are new to Go, feel free to ask for help in the PR or on our [Discord server](https://discord.gg/x6henXZs)!
 
 **For documentation:**
 - Work as stated in the issue
