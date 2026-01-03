@@ -79,14 +79,15 @@ func GetHeadState() (string, error) {
 func IsWorkDirDirty() (bool, error) {
 	// Load the tree from the last commit (HEAD)
 	headTree := make(map[string]string)
-	lastCommit, err := storage.GetLastCommit()
+	lastCommit, err := GetHeadCommit() // Use GetHeadCommit, not storage.GetLastCommit
 	if err == nil {
 		tree, parseErr := storage.ParseTree(lastCommit.TreeHash)
 		if parseErr != nil {
 			return false, parseErr
 		}
 		headTree = tree
-	} else if err != storage.ErrNoCommits {
+	} else if !os.IsNotExist(err) && !strings.Contains(err.Error(), "no such file") && !strings.Contains(err.Error(), "cannot find the file") {
+		// If the error is NOT "file not found" (meaning no branch tip yet), return it.
 		return false, err
 	}
 
@@ -245,4 +246,10 @@ func GetHeadCommit() (models.Commit, error) {
 
 	// Find and return that commit
 	return storage.FindCommit(commitHash)
+}
+
+// IsRepoInitialized checks if the current directory is a valid kitkat repository.
+func IsRepoInitialized() bool {
+	_, err := os.Stat(".kitkat")
+	return err == nil
 }

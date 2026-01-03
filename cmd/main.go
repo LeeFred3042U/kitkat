@@ -194,6 +194,34 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Error:", err)
 		}
 	},
+	"rebase": func(args []string) {
+		if len(args) < 1 {
+			fmt.Println("Usage: kitkat rebase [-i <commit> | --continue | --abort]")
+			return
+		}
+
+		switch args[0] {
+		case "--abort":
+			if err := core.RebaseAbort(); err != nil {
+				fmt.Println("Error:", err)
+			}
+		case "--continue":
+			if err := core.RebaseContinue(); err != nil {
+				fmt.Println("Error:", err)
+			}
+		case "-i":
+			if len(args) < 2 {
+				fmt.Println("Usage: kitkat rebase -i <commit>")
+				return
+			}
+			if err := core.RebaseInteractive(args[1]); err != nil {
+				fmt.Println("Error:", err)
+			}
+		default:
+			// If no flag, assumes simple rebase which isn't requested but we can default to error
+			fmt.Println("Usage: kitkat rebase [-i <commit> | --continue | --abort]")
+		}
+	},
 	"ls-files": func(args []string) {
 		entries, err := core.LoadIndex()
 		if err != nil {

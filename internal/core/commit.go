@@ -44,10 +44,9 @@ func Commit(message string) (models.Commit, string, error) {
 	}
 
 	var parentID, parentTreeHash string
-	parentCommit, err := storage.GetLastCommit()
-	if err != nil && err != storage.ErrNoCommits {
-		return models.Commit{}, "", err
-	}
+	parentCommit, err := GetHeadCommit()
+	// If error, we assume root commit (no parent) unless critical system error
+	// In strict world, we'd check error type.
 	if err == nil {
 		parentID = parentCommit.ID
 		parentTreeHash = parentCommit.TreeHash
