@@ -2,7 +2,7 @@ name: Weekly GitHub Digest
 
 on:
   schedule:
-    - cron: "0 10 * * 1"
+    - cron: "30 4 * * 1"
   workflow_dispatch:
 
 jobs:
