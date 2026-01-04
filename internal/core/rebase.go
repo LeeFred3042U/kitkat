@@ -6,41 +6,37 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime" // Added for Task 2
+	"runtime"
 	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/models"
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-// This function determines which editor to open based on the Operating System
-func getEditor() string {
+func getEditor() (string, error) {
 	if envEditor := os.Getenv("EDITOR"); envEditor != "" {
-		return envEditor
+		return envEditor, nil
 	}
 
 	if runtime.GOOS == "windows" {
-		return "notepad"
+		return "notepad", nil
 	}
 
-	// List of common Linux editors to check in order
 	editors := []string{"nano", "vim", "vi"}
 	for _, e := range editors {
 		if _, err := exec.LookPath(e); err == nil {
-			return e
+			return e, nil
 		}
 	}
 
-	return "" // Will throw an error in the calling function if empty
+	return "", fmt.Errorf("no suitable text editor found (checked nano, vim, vi). Please set your $EDITOR environment variable")
 }
 
-// RebaseInteractive starts an interactive rebase session
 func RebaseInteractive(commitHash string) error {
 	if !IsRepoInitialized() {
 		return fmt.Errorf("not a kitkat repository")
 	}
 
-	// 1. Validate clean working directory
 	isDirty, err := IsWorkDirDirty()
 	if err != nil {
 		return fmt.Errorf("failed to check working directory status: %w", err)
@@ -49,13 +45,11 @@ func RebaseInteractive(commitHash string) error {
 		return fmt.Errorf("cannot rebase: you have unstaged changes")
 	}
 
-	// 2. Resolve 'onto' commit
 	ontoCommit, err := storage.FindCommit(commitHash)
 	if err != nil {
 		return fmt.Errorf("invalid base commit '%s': %w", commitHash, err)
 	}
 
-	// 3. Get current HEAD info for potential abort
 	headState, err := GetHeadState()
 	if err != nil {
 		return err
@@ -69,7 +63,6 @@ func RebaseInteractive(commitHash string) error {
 		rebaseHeadNameVal = "refs/heads/" + headState
 	}
 
-	// 4. Find commits to rebase (onto..HEAD)
 	commitsToRebase, err := getCommitsBetween(ontoCommit.ID, headHash)
 	if err != nil {
 		return err
@@ -79,15 +72,16 @@ func RebaseInteractive(commitHash string) error {
 		return nil
 	}
 
-	// 5. Generate TODO list
 	todoPath := filepath.Join(RepoDir, "rebase-todo")
 	todoContent := generateTodo(commitsToRebase)
 	if err := os.WriteFile(todoPath, []byte(todoContent), 0644); err != nil {
 		return err
 	}
 
-	// 6. Open Editor (Task 2 Fix applied here)
-	editor := getEditor()
+	editor, err := getEditor()
+	if err != nil {
+		return err
+	}
 
 	cmd := exec.Command(editor, todoPath)
 	cmd.Stdin = os.Stdin
@@ -98,7 +92,6 @@ func RebaseInteractive(commitHash string) error {
 		return fmt.Errorf("failed to run editor: %w", err)
 	}
 
-	// 7. Parse User Input
 	newTodoContent, err := os.ReadFile(todoPath)
 	if err != nil {
 		return err
@@ -109,7 +102,6 @@ func RebaseInteractive(commitHash string) error {
 		return nil
 	}
 
-	// 8. Initialize State
 	state := RebaseState{
 		HeadName:    rebaseHeadNameVal,
 		Onto:        ontoCommit.ID,
@@ -121,7 +113,6 @@ func RebaseInteractive(commitHash string) error {
 		return err
 	}
 
-	// 9. Attach HEAD to temporary branch 'kitkat-rebase-tmp' pointing to 'onto'
 	tmpBranch := "kitkat-rebase-tmp"
 	tmpBranchPath := filepath.Join(".kitkat", "refs", "heads", tmpBranch)
 	if err := os.MkdirAll(filepath.Dir(tmpBranchPath), 0755); err != nil {
@@ -140,7 +131,6 @@ func RebaseInteractive(commitHash string) error {
 	return RunRebaseLoop()
 }
 
-// RebaseContinue resumes a halted rebase
 func RebaseContinue() error {
 	if !IsRebaseInProgress() {
 		return fmt.Errorf("no rebase in progress")
@@ -200,7 +190,6 @@ func RebaseContinue() error {
 	return RunRebaseLoop()
 }
 
-// RebaseAbort restores state
 func RebaseAbort() error {
 	if !IsRebaseInProgress() {
 		return fmt.Errorf("no rebase in progress")
@@ -483,8 +472,10 @@ func promptForMessage(defaultMsg string) string {
 	tmp := ".kitkat/COMMIT_EDITMSG"
 	os.WriteFile(tmp, []byte(defaultMsg), 0644)
 
-	// Task 2: Fix Applied Here too
-	editor := getEditor()
+	editor, err := getEditor()
+	if err != nil {
+		return defaultMsg
+	}
 
 	cmd := exec.Command(editor, tmp)
 	cmd.Stdin = os.Stdin
