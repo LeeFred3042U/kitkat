@@ -1,0 +1,54 @@
+name: Auto label PR from linked issue
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+permissions:
+  issues: read
+  pull-requests: write
+
+jobs:
+  label-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR based on linked issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || "";
+
+            // Extract issue number from "Fixes #123" or "Closes #123"
+            const match = body.match(/(Fixes|Closes)\s+#(\d+)/i);
+            if (!match) {
+              console.log("No linked issue found.");
+              return;
+            }
+
+            const issueNumber = Number(match[2]);
+
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+
+            const issueLabels = issue.labels.map(l => l.name);
+            const difficulty = ["Easy", "Medium", "Hard"].find(l => issueLabels.includes(l));
+
+            if (!difficulty) {
+              console.log("No difficulty label on issue.");
+              return;
+            }
+
+            const labelsToAdd = [difficulty, "SWoC26"];
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: labelsToAdd
+            });
+
+            console.log("Labels added:", labelsToAdd);

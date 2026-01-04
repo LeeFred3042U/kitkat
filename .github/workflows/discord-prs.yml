@@ -1,0 +1,45 @@
+name: Discord PR Updates
+
+on:
+  pull_request:
+    types: [opened, closed, reopened]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send PR update to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_PRS_WEBHOOK }}
+          DISCORD_MAINTAINER_ROLE_ID: ${{ secrets.DISCORD_MAINTAINER_ROLE_ID }}
+        run: |
+          ACTION="${{ github.event.action }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          URL="${{ github.event.pull_request.html_url }}"
+          USER="${{ github.event.pull_request.user.login }}"
+          MERGED="${{ github.event.pull_request.merged }}"
+
+          STATUS="$ACTION"
+          if [ "$MERGED" = "true" ]; then
+            STATUS="merged"
+          fi
+
+          # Collect labels
+          LABELS=$(jq -r '.pull_request.labels[].name' <<< '${{ toJson(github.event) }}')
+
+          # Silence spam immediately
+          if echo "$LABELS" | grep -q "^spam$"; then
+            exit 0
+          fi
+
+          # Ping ONLY if Hard AND SWoC26
+          PING=""
+          if echo "$LABELS" | grep -q "^Hard$" && echo "$LABELS" | grep -q "^SWoC26$"; then
+            PING="<@&${@&${DISCORD_MAINTAINER_ROLE_ID}}>"
+          fi
+
+          curl -H "Content-Type: application/json" \
+            -d "{
+              \"content\": \"${PING} 🔀 **PR ${STATUS}**\n**${TITLE}**\nBy: ${USER}\n${URL}\"
+            }" \
+            $DISCORD_WEBHOOK_URL
