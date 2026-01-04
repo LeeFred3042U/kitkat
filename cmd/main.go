@@ -48,6 +48,11 @@ var commands = map[string]CommandFunc{
 		fmt.Printf("Removed '%s'\n", filename)
 	},
 	"commit": func(args []string) {
+		if !core.IsRepoInitialized() {
+			fmt.Println("Error: not a kitkat repository (or any of the parent directories): .kitkat")
+			return
+		}
+
 		if len(args) < 1 {
 			fmt.Println("Usage: kitkat commit <-m | -am | --amend> <message>")
 			return
@@ -260,6 +265,11 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"ls-files": func(args []string) {
+		if !core.IsRepoInitialized() {
+			fmt.Println("Error: not a kitkat repository (or any of the parent directories): .kitkat")
+			return
+		}
+
 		entries, err := core.LoadIndex()
 		if err != nil {
 			fmt.Println("Error loading index:", err)
