@@ -1,0 +1,43 @@
+name: Weekly GitHub Digest
+
+on:
+  schedule:
+    - cron: "30 4 * * 1"
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_ISSUES_WEBHOOK }}
+        with:
+          script: |
+            const since = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                since
+              }
+            );
+
+            const openedIssues = issues.filter(i => i.pull_request === undefined);
+            const prs = issues.filter(i => i.pull_request);
+
+            const mergedPRs = prs.filter(pr => pr.pull_request?.merged_at);
+
+            const msg =
+              `**Weekly Digest**\n` +
+              `Issues opened: ${openedIssues.length}\n` +
+              `PRs opened: ${prs.length}\n` +
+              `PRs merged: ${mergedPRs.length}`;
+
+            await fetch(process.env.DISCORD_WEBHOOK_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ content: msg })
+            });
