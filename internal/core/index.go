@@ -1,10 +1,9 @@
 package core
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 )
 
 // IndexEntry represents a file in the staging area
@@ -15,26 +14,25 @@ type IndexEntry struct {
 
 // LoadIndex reads the .kitkat/index file
 func LoadIndex() ([]IndexEntry, error) {
-	file, err := os.Open(".kitkat/index")
+	data, err := os.ReadFile(".kitkat/index")
 	if os.IsNotExist(err) {
 		return []IndexEntry{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+
+	var entryMap map[string]string
+	err = json.Unmarshal(data, &entryMap)
+	if err != nil {
+		return nil, fmt.Errorf("index file corrupted")
+	}
 
 	var entries []IndexEntry
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		// We expect: HASH PATH
-		parts := strings.SplitN(line, " ", 2)
-		if len(parts) == 2 {
-			entries = append(entries, IndexEntry{Hash: parts[0], Path: parts[1]})
-		}
+	for key, value := range entryMap {
+		entries = append(entries, IndexEntry{Path: key, Hash: value})
 	}
-	return entries, scanner.Err()
+	return entries, nil
 }
 
 // SaveIndex writes the index back to disk
@@ -45,11 +43,19 @@ func SaveIndex(entries []IndexEntry) error {
 	}
 	defer file.Close()
 
+	entryMap := make(map[string]string)
 	for _, entry := range entries {
-		_, err := fmt.Fprintf(file, "%s %s\n", entry.Hash, entry.Path)
-		if err != nil {
-			return err
-		}
+		entryMap[entry.Path] = entry.Hash
+	}
+
+	data, err := json.Marshal(entryMap)
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Write(data)
+	if err != nil {
+		return fmt.Errorf("unable to write to index")
 	}
 	return nil
 }
