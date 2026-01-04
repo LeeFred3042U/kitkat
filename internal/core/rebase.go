@@ -13,25 +13,36 @@ import (
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-func getEditor() (string, error) {
+// getEditor returns the user's preferred text editor from the EDITOR environment variable
+// or defaults to common editors based on the OS
+func getEditor() (string, []string, error) {
 	if envEditor := os.Getenv("EDITOR"); envEditor != "" {
-		return envEditor, nil
+		return envEditor, []string{}, nil
 	}
 
 	if runtime.GOOS == "windows" {
-		return "notepad", nil
+		if _, err := exec.LookPath("code"); err == nil {
+			return "code", []string{"--wait"}, nil
+		}
+		return "notepad", []string{}, nil
 	}
 
-	editors := []string{"nano", "vim", "vi"}
+	// Order of preference for Unix-like systems
+	editors := []string{"code", "nano", "micro", "vim"}
 	for _, e := range editors {
 		if _, err := exec.LookPath(e); err == nil {
-			return e, nil
+			if e == "code" {
+				return e, []string{"--wait"}, nil
+			}
+			return e, []string{}, nil
 		}
 	}
 
-	return "", fmt.Errorf("no suitable text editor found (checked nano, vim, vi). Please set your $EDITOR environment variable")
+	return "", nil, fmt.Errorf("no suitable editor found (checked code, nano, micro, vim)")
 }
 
+//	RebaseInteractive starts an interactive rebase onto the specified commit
+//	returns an error if any operation fails
 func RebaseInteractive(commitHash string) error {
 	if !IsRepoInitialized() {
 		return fmt.Errorf("not a kitkat repository")
@@ -78,12 +89,13 @@ func RebaseInteractive(commitHash string) error {
 		return err
 	}
 
-	editor, err := getEditor()
+	editor, editorArgs, err := getEditor()
 	if err != nil {
 		return err
 	}
 
-	cmd := exec.Command(editor, todoPath)
+	cmdArgs := append(editorArgs, todoPath)
+	cmd := exec.Command(editor, cmdArgs...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -113,6 +125,9 @@ func RebaseInteractive(commitHash string) error {
 		return err
 	}
 
+	// Create temporary branch at ontoCommit
+	// This branch will be used as the new HEAD during the rebase
+	// It will be deleted after the rebase completes or is aborted
 	tmpBranch := "kitkat-rebase-tmp"
 	tmpBranchPath := filepath.Join(".kitkat", "refs", "heads", tmpBranch)
 	if err := os.MkdirAll(filepath.Dir(tmpBranchPath), 0755); err != nil {
@@ -131,6 +146,8 @@ func RebaseInteractive(commitHash string) error {
 	return RunRebaseLoop()
 }
 
+// RebaseContinue continues the ongoing rebase process after conflicts are resolved
+// returns an error if no rebase is in progress or if any operation fails
 func RebaseContinue() error {
 	if !IsRebaseInProgress() {
 		return fmt.Errorf("no rebase in progress")
@@ -190,6 +207,8 @@ func RebaseContinue() error {
 	return RunRebaseLoop()
 }
 
+// RebaseAbort aborts the ongoing rebase and restores the original HEAD and working directory
+// returns an error if no rebase is in progress or if any operation fails
 func RebaseAbort() error {
 	if !IsRebaseInProgress() {
 		return fmt.Errorf("no rebase in progress")
@@ -221,6 +240,8 @@ func RebaseAbort() error {
 	return ClearRebaseState()
 }
 
+// RunRebaseLoop processes the rebase steps in a loop until completion or conflict
+// returns an error if any operation fails
 func RunRebaseLoop() error {
 	for {
 		cmdLine, state, err := ReadNextTodo()
@@ -270,6 +291,8 @@ func RunRebaseLoop() error {
 	}
 }
 
+// finishRebase finalizes the rebase by updating HEAD and cleaning up temporary state
+// returns an error if any operation fails
 func finishRebase(state *RebaseState) error {
 	headHash, err := readCurrentHeadCommit()
 	if err != nil {
@@ -290,10 +313,14 @@ func finishRebase(state *RebaseState) error {
 	return ClearRebaseState()
 }
 
+// executePick applies the changes from the commit with the given hash onto the current HEAD
+// creates a new commit with the same message
 func executePick(hash string) error {
 	return cherryPick(hash, false)
 }
 
+// executeReword applies the changes from the commit with the given hash onto the current HEAD
+// and prompts the user to edit the commit message
 func executeReword(hash string) error {
 	if err := cherryPick(hash, false); err != nil {
 		return err
@@ -303,6 +330,8 @@ func executeReword(hash string) error {
 	return amendCommitMessage(head.ID, newMsg)
 }
 
+// executeSquash applies the changes from the commit with the given hash onto the current HEAD
+// and amends the previous commit with a combined message
 func executeSquash(hash string) error {
 	if err := cherryPick(hash, true); err != nil {
 		return err
@@ -313,6 +342,9 @@ func executeSquash(hash string) error {
 	return amendCommit(prevHead, newMsg)
 }
 
+// cherryPick applies the changes from the commit with the given hash onto the current HEAD
+// if noCommit is true, it applies the changes without creating a new commit
+// returns an error if any conflicts are detected
 func cherryPick(hash string, noCommit bool) error {
 	commit, err := storage.FindCommit(hash)
 	if err != nil {
@@ -341,6 +373,8 @@ type Change struct {
 	NewHash string
 }
 
+// getChanges computes the changes between parentHash and childHash
+// returns a map of file paths to their old and new hashes
 func getChanges(parentHash, childHash string) (map[string]Change, error) {
 	parentTree := make(map[string]string)
 	if parentHash != "" {
@@ -373,6 +407,9 @@ func getChanges(parentHash, childHash string) (map[string]Change, error) {
 	return changes, nil
 }
 
+
+// applyChanges applies the given changes to the working directory and index
+// returns an error if any conflicts are detected
 func applyChanges(changes map[string]Change) error {
 	headCommit, _ := GetHeadCommit()
 	headTree, _ := storage.ParseTree(headCommit.TreeHash)
@@ -415,6 +452,7 @@ func applyChanges(changes map[string]Change) error {
 	return nil
 }
 
+// generateTodo generates the initial todo content for the given commit hashes
 func generateTodo(hashes []string) string {
 	var sb strings.Builder
 	for _, h := range hashes {
@@ -429,6 +467,8 @@ func generateTodo(hashes []string) string {
 	return sb.String()
 }
 
+// parseTodo parses the todo content and returns a list of steps
+// ignores comments and empty lines
 func parseTodo(content string) []string {
 	var steps []string
 	lines := strings.Split(content, "\n")
@@ -442,6 +482,8 @@ func parseTodo(content string) []string {
 	return steps
 }
 
+// getCommitsBetween returns a list of commit hashes from start (exclusive) to end (inclusive)
+// in chronological order
 func getCommitsBetween(start, end string) ([]string, error) {
 	var chain []string
 	curr := end
@@ -468,16 +510,20 @@ func getCommitsBetween(start, end string) ([]string, error) {
 	return chain, nil
 }
 
+// promptForMessage opens the user's editor to edit the commit message, starting with defaultMsg
+// and returns the edited message
 func promptForMessage(defaultMsg string) string {
 	tmp := ".kitkat/COMMIT_EDITMSG"
 	os.WriteFile(tmp, []byte(defaultMsg), 0644)
 
-	editor, err := getEditor()
+	editor, editorArgs, err := getEditor()
 	if err != nil {
+		fmt.Printf("Warning: %v. Using default message.\n", err)
 		return defaultMsg
 	}
 
-	cmd := exec.Command(editor, tmp)
+	cmdArgs := append(editorArgs, tmp)
+	cmd := exec.Command(editor, cmdArgs...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -487,6 +533,8 @@ func promptForMessage(defaultMsg string) string {
 	return strings.TrimSpace(string(out))
 }
 
+// amendCommitMessage creates a new commit with the same tree and parent as commitID but with newVal
+// and updates the current branch to point to it
 func amendCommitMessage(commitID, newVal string) error {
 	c, err := storage.FindCommit(commitID)
 	if err != nil {
@@ -504,6 +552,8 @@ func amendCommitMessage(commitID, newVal string) error {
 	return UpdateBranchPointer(newHash)
 }
 
+// amendCommit creates a new commit with the same tree and parent as prevHead but with newMsg
+// and updates the current branch to point to it
 func amendCommit(prevHead models.Commit, newMsg string) error {
 	treeHash, err := storage.CreateTree()
 	if err != nil {
@@ -521,6 +571,7 @@ func amendCommit(prevHead models.Commit, newMsg string) error {
 	return UpdateBranchPointer(newHash)
 }
 
+// saveObject saves the given content as an object and returns its hash
 func saveObject(content []byte) (string, error) {
 	h := sha1.New()
 	h.Write(content)
