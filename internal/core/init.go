@@ -48,6 +48,11 @@ func InitRepo() error {
 		return err
 	}
 
+	// Generating empty main branch file.
+	if err := os.WriteFile(HeadsDir+"/main", []byte(""), 0o644); err != nil {
+		return err
+	}
+
 	// Create default .kitignore to prevent self-tracking
 	ignoreContent := []byte(".DS_Store\nkitkat\nkitkat.exe\n")
 	if err := os.WriteFile(".kitignore", ignoreContent, 0644); err != nil {
