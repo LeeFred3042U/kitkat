@@ -302,6 +302,11 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"tag": func(args []string) {
+		if !core.IsRepoInitialized() {
+			fmt.Println("Error: not a kitkat repository (or any of the parent directories): .kitkat")
+			return
+		}
+
 		if len(args) == 1 && (args[0] == "--list") {
 			if err := core.PrintTags(); err != nil {
 				fmt.Println("Error:", err)
