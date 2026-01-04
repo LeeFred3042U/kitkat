@@ -11,11 +11,11 @@ import (
 func TestConfigCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	origDir, _ := os.Getwd()
-	
+
 	// Mock HOME so UserHomeDir() points to our temp directory
 	origHome := os.Getenv("HOME")
 	os.Setenv("HOME", tempDir)
-	
+
 	os.Chdir(tempDir)
 	defer func() {
 		os.Chdir(origDir)

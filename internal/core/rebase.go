@@ -41,8 +41,8 @@ func getEditor() (string, []string, error) {
 	return "", nil, fmt.Errorf("no suitable editor found (checked code, nano, micro, vim)")
 }
 
-//	RebaseInteractive starts an interactive rebase onto the specified commit
-//	returns an error if any operation fails
+// RebaseInteractive starts an interactive rebase onto the specified commit
+// returns an error if any operation fails
 func RebaseInteractive(commitHash string) error {
 	if !IsRepoInitialized() {
 		return fmt.Errorf("not a kitkat repository")
@@ -406,7 +406,6 @@ func getChanges(parentHash, childHash string) (map[string]Change, error) {
 	}
 	return changes, nil
 }
-
 
 // applyChanges applies the given changes to the working directory and index
 // returns an error if any conflicts are detected

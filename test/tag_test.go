@@ -26,7 +26,7 @@ func TestTagCommand(t *testing.T) {
 	t.Run("Create Tag and Verify Content", func(t *testing.T) {
 		tagName := "v1.0"
 		commitID := "abc1234567890"
-		
+
 		if err := core.CreateTag(tagName, commitID); err != nil {
 			t.Fatalf("Failed to create tag: %v", err)
 		}
