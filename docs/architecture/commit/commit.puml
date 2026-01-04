@@ -1,35 +1,44 @@
 @startuml commit
-title Command: kitkat commit
+title Kitkat Commit Activity Diagram\n(internal/core/commit.go)
 skinparam style strictuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 300
+skinparam activityFontSize 10
+skinparam noteFontSize 9
+
 start
-:User runs `kitkat commit ...`;
-:Load User Config (Name/Email);
+:User runs `kitkat commit <msg>`:;
 
-partition "Tree Generation" {
-  :Load Index;
-  :Sort File Paths;
-  :Generate Tree Content ("hash path");
-  :Hash Tree Content -> TreeHash;
-  :Store Tree in .kitkat/objects/;
+:Load config\n(author.name/email):;
+
+partition "1. Tree from Index" {
+  :storage.CreateTree() -> TreeHash:;
+  note right: Sort paths, store objects
 }
 
-partition "Parent Resolution" {
-  :Read HEAD;
-  :Resolve Parent Commit ID;
-  if (TreeHash == ParentTreeHash?) then (yes)
-    :Error: "Nothing to commit";
-    stop
-  endif
+partition "2. HEAD Comparison" {
+  :GetHeadCommit() -> ParentTreeHash:;
 }
 
-partition "Commit Creation" {
-  :Create Commit Object
-  (Parent, TreeHash, Msg, Author);
-  :Hash Commit -> CommitID;
-  :Append to .kitkat/commits.log;
+if (TreeHash == ParentTreeHash?) then (yes)
+  stop
+  note right: "nothing to commit,\nworking tree clean"
+else (no)
+endif
+
+partition "3. Create Commit" {
+  :models.Commit\n(Parent,Tree,Msg,Time):;
+  :hashCommit() -> ID:;
+  :storage.AppendCommit():;
+  note right: Future: objects/<ID>
 }
 
-:Update Branch Reference
-(Write CommitID to .kitkat/refs/heads/<branch>);
+partition "4. Update Branch" {
+  :getCurrentBranchRefPath():;
+  :WriteFile(refs/heads/main, ID):;
+}
+
+:Generate summary\n(oldTree vs newTree):;
 stop
 @enduml
