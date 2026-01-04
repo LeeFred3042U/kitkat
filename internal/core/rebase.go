@@ -13,7 +13,6 @@ import (
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-// Task 2: Cross-Platform Editor Fallback
 // This function determines which editor to open based on the Operating System
 func getEditor() string {
 	if envEditor := os.Getenv("EDITOR"); envEditor != "" {
@@ -24,8 +23,15 @@ func getEditor() string {
 		return "notepad"
 	}
 
-	// Default for Linux/macOS to prevent crashes
-	return "nano"
+	// List of common Linux editors to check in order
+	editors := []string{"nano", "vim", "vi"}
+	for _, e := range editors {
+		if _, err := exec.LookPath(e); err == nil {
+			return e
+		}
+	}
+
+	return "" // Will throw an error in the calling function if empty
 }
 
 // RebaseInteractive starts an interactive rebase session
@@ -226,7 +232,6 @@ func RebaseAbort() error {
 	return ClearRebaseState()
 }
 
-// RunRebaseLoop executes steps until done or blocked
 func RunRebaseLoop() error {
 	for {
 		cmdLine, state, err := ReadNextTodo()
