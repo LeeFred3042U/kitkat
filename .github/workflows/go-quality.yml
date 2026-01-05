@@ -1,4 +1,4 @@
-name: Go Quality Check
+name: Go Merge Gate
 
 on:
   push:
@@ -9,25 +9,32 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.24" # Matches your go.mod
+          go-version: "1.24"
 
-      - name: Check Formatting
+      - name: Enforce gofmt
         run: |
-          # This fails if the code is not formatted correctly
-          if [ -n "$(gofmt -l .)" ]; then
-            echo "Error: The following files are not formatted. Run 'go fmt ./...' locally:"
-            gofmt -l .
+          UNFORMATTED=$(gofmt -l $(git ls-files '*.go'))
+          if [ -n "$UNFORMATTED" ]; then
+            echo "gofmt violations detected:"
+            echo "$UNFORMATTED"
+            echo ""
+            echo "Run 'go fmt ./...' locally and commit the result."
             exit 1
           fi
 
-      - name: Build
-        run: go build -v ./cmd/main.go
+      - name: Run tests
+        run: go test ./...
 
-      - name: Vet (Static Analysis)
+      - name: Build all packages
+        run: go build ./...
+
+      - name: Vet (static analysis)
         run: go vet ./...

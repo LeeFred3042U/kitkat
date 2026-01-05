@@ -4,7 +4,7 @@ Thank you for your interest in contributing to **kitkat**! We are building an ed
 
 Whether you are a student looking for your first open-source contribution or a systems engineer wanting to solve complex algorithmic challenges, there is a place for you here.
 
-## 💬 Join Our Community
+## Join Our Community
 
 Have questions? Want to discuss ideas or get help? Join our Discord server: **https://discord.gg/x6henXZs**
 
@@ -12,19 +12,22 @@ Have questions? Want to discuss ideas or get help? Join our Discord server: **ht
 
 We have organized contributions into three tracks. Please choose one that matches your interest:
 
-## 🚦 Pick Your Track
+## Pick an Issue Difficulty
 
-We use labels to show how hard an issue is. Choose one that fits you.
+> Note:
+> These tracks describe **issue difficulty and learning scope only**.
+> They do **not** define Pull Request structure, review standards, or change risk.
+> PR review is based on the *type of change* (feature, fix, test, chore), not the issue difficulty label.
 
-### Track 1: Easy (Start Here)
+### Easy (Start Here)
 
 **Labels:** `Easy` `documentation` `good first issue`
-Great if you are new to Go or Open Source
+Generally suitable if you are new to Go or Open Source
 
 - **What you do:** Fix typos, add simple CLI commands, update `README.md`
 - **Example:** "Fix the help message for `rm`"
 
-### Track 2: Medium (The Real Work)
+### Medium (The Real Work)
 
 **Labels:** `Medium` `bug` `core`
 Great if you know some Go and want to build features.
@@ -32,10 +35,10 @@ Great if you know some Go and want to build features.
 - **What you do:** Add new logic, fix standard bugs, handle flags.
 - **Example:** "Implement `kitkat log -n 5`"
 
-### Track 3: Hard (Core Logic)
+### Hard (Core Logic)
 
 **Labels:** `Hard` `core`
-For people who can think it through
+For contributors comfortable reasoning about complex behavior
 
 - **What you do:** Graph traversal, file locking, hashing, binary formats
 - **Example:** "Implement `reset --hard` with tree traversal"
