@@ -10,7 +10,7 @@ import (
 	"github.com/LeeFred3042U/kitkat/internal/storage"
 )
 
-const headsDir = ".kitkat/refs/heads"
+const headsDir string = ".kitkat/refs/heads"
 
 // Resolves the current commit hash by following the HEAD reference
 func readHEAD() (string, error) {
@@ -22,9 +22,12 @@ func readHEAD() (string, error) {
 	if !strings.HasPrefix(ref, "ref: ") {
 		return "", fmt.Errorf("invalid HEAD format")
 	}
-	refPath := strings.TrimPrefix(ref, "ref: ")
+	return strings.TrimPrefix(ref, "ref: "), nil
+}
 
-	commitHash, err := os.ReadFile(filepath.Join(".kitkat", refPath))
+// readCommitHash reads the commit hash from the reference path
+func readCommitHash(referencePath string) (string, error) {
+	commitHash, err := os.ReadFile(filepath.Join(".kitkat", referencePath))
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +39,11 @@ func CreateBranch(name string) error {
 	if IsBranch(name) {
 		return fmt.Errorf("branch '%s' already exists", name)
 	}
-	commitHash, err := readHEAD()
+	head, err := readHEAD()
+	if err != nil {
+		return err
+	}
+	commitHash, err := readCommitHash(head)
 	if err != nil {
 		// If HEAD can't be read, maybe there are no commits yet
 		lastCommit, err := storage.GetLastCommit()
@@ -118,4 +125,24 @@ func RenameCurrentBranch(newName string) error {
 		return err
 	}
 	return os.WriteFile(headPath, []byte(refPrefix+newName+"\n"), 0644)
+}
+
+// DeleteBranch deletes the branch
+// throws error if the branch is equal to HEAD
+func DeleteBranch(name string) error {
+	head, err := readHEAD()
+	if err != nil {
+		return err
+	}
+
+	// Checks if the branch is set to HEAD
+	if head == "refs/heads/"+name {
+		return fmt.Errorf("branch `%s` is currently active, switch to another branch and then try to delete again", name)
+	}
+
+	if err := os.Remove(filepath.Join(headsDir, name)); err != nil {
+		return fmt.Errorf("branch `%s` doesn't exist", name)
+	}
+
+	return nil
 }

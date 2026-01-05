@@ -17,7 +17,7 @@ jobs:
         with:
           script: |
             console.log("PR body:", context.payload.pull_request.body);
-            
+
             const pr = context.payload.pull_request;
             const body = pr.body || "";
 

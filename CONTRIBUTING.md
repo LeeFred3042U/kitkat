@@ -17,53 +17,60 @@ We have organized contributions into three tracks. Please choose one that matche
 We use labels to show how hard an issue is. Choose one that fits you.
 
 ### Track 1: Easy (Start Here)
+
 **Labels:** `Easy` `documentation` `good first issue`
 Great if you are new to Go or Open Source
-* **What you do:** Fix typos, add simple CLI commands, update `README.md`
-* **Example:** "Fix the help message for `rm`"
+
+- **What you do:** Fix typos, add simple CLI commands, update `README.md`
+- **Example:** "Fix the help message for `rm`"
 
 ### Track 2: Medium (The Real Work)
+
 **Labels:** `Medium` `bug` `core`
 Great if you know some Go and want to build features.
-* **What you do:** Add new logic, fix standard bugs, handle flags.
-* **Example:** "Implement `kitkat log -n 5`"
+
+- **What you do:** Add new logic, fix standard bugs, handle flags.
+- **Example:** "Implement `kitkat log -n 5`"
 
 ### Track 3: Hard (Core Logic)
+
 **Labels:** `Hard` `core`
 For people who can think it through
-* **What you do:** Graph traversal, file locking, hashing, binary formats
-* **Example:** "Implement `reset --hard` with tree traversal"
+
+- **What you do:** Graph traversal, file locking, hashing, binary formats
+- **Example:** "Implement `reset --hard` with tree traversal"
 
 > Note: This is not applied everytime
----
 
+---
 
 ## Workflow (How to Contribute)
 
-- Go to the Issues tab or click [this](https://github.com/LeeFred3042U/kitkat/issues). Look for a label (Easy, Medium, etc) 
+- Go to the Issues tab or click [this](https://github.com/LeeFred3042U/kitkat/issues). Look for a label (Easy, Medium, etc)
 - Comment: "I want to work on this!"
 - When you are assigned the issue by the maintainer only then continue
 
-
 ### Prerequisites
-* **Go 1.24+** installed (Check `go.mod` for the exact version)
-* A text editor (VS Code recommended)
+
+- **Go 1.24+** installed (Check `go.mod` for the exact version)
+- A text editor (VS Code recommended)
 
 ## Setup
 
 ### 1. Install Go
 
-* Make sure you have **Go 1.24+**.
-* Check with: `go version`
+- Make sure you have **Go 1.24+**.
+- Check with: `go version`
 
 ### 2. Fork and Clone
 
 1. **Fork** this repo (Click the button top-right)
-    - it looks like this
+   - it looks like this
 
-    - ![alt text](assets/image-1.png)
+   - ![alt text](assets/image-1.png)
 
 2. **Clone** your fork:
+
 ```bash
 git clone https://github.com/username/kitkat.git
 cd kitkat
@@ -78,11 +85,13 @@ git remote add upstream https://github.com/LeeFred3042U/kitkat.git
 ```
 
 Verify your remotes:
+
 ```bash
 git remote -v
 ```
 
 You should see:
+
 ```
 origin    https://github.com/username/kitkat.git (fetch)
 origin    https://github.com/username/kitkat.git (push)
@@ -110,7 +119,7 @@ git push origin main
 ### 5. Create a Branch
 
 - Use a descriptive name for your branch
-- Do not work on main 
+- Do not work on main
 - Make a new branch from the updated main
 
 ```bash
@@ -135,22 +144,26 @@ go build -o kitkat ./cmd/main.go
 ### 8. Make Changes
 
 **For code:**
-- Write clean, idiomatic Go code 
+
+- Write clean, idiomatic Go code
 - If you are new to Go, feel free to ask for help in the PR or on our [Discord server](https://discord.gg/x6henXZs)!
 
 **For documentation:**
+
 - Work as stated in the issue
 - Keep check for typos
 
 ### 9. Test
 
-Manual testing is required 
+Manual testing is required
+
 - Please include (if code changes were made, else no need) a **screenshot** or **terminal output** or **screen recording** in your Pull Request description proving the command works as expected
 - Run `go fmt ./...` before you commit, else we have issues
 
 ### 10. Push & PR
 
 - Push your branch to your fork:
+
 ```bash
 git push origin feat/implement-rm-command
 ```
@@ -161,13 +174,14 @@ git push origin feat/implement-rm-command
 
 ## Pull Request Verification Standard (MANDATORY) [only for code changes]
 
-We require **Proof of Work** for every Pull Request 
+We require **Proof of Work** for every Pull Request
 "It works on my machine" is not enough
 You must include a **Screenshot** or **Terminal Output** in your PR description showing the command running successfully.
 
 **Acceptable Example (Terminal Output):**
 
 > I tested the `help` command. Here is the output of terminal showing it
+
 ```bash
 [terminal@terminal kitkat] $ ./kitkat help
 usage: kitkat <command> [arguments]
@@ -186,7 +200,9 @@ These are the common KitKat commands:
 
 Use 'kitkat help <command>' for more information about a command
 ```
+
 OR
+
 > I tested `add` and `commit` command(since both go together). Here is the output of terminal shown in a screenshot
 
 ![alt text](assets/image.png)
@@ -215,20 +231,19 @@ diagram-name.png    (exported image checked into the repo)
 
 We use the following extension so contributors can preview and export diagrams:
 
-* **Name:** PlantUML Viewer
-* **ID:** `BenkoSoftware.plantumlviewer`
-* **Publisher:** BenkoSoftware
-* **Version:** 1.1.0
+- **Name:** PlantUML Viewer
+- **ID:** `BenkoSoftware.plantumlviewer`
+- **Publisher:** BenkoSoftware
+- **Version:** 1.1.0
 
 ## How to Use It
 
 1. Install the extension
 2. Press `Ctrl + Shift + P`, search **PlantUML**
 3. Add keybindings for(because it makes it easier):
-* *Open Preview*
-* *Export as PNG*
 
-
+- _Open Preview_
+- _Export as PNG_
 
 ## Workflow for New or Updated Diagrams
 
@@ -236,6 +251,7 @@ We use the following extension so contributors can preview and export diagrams:
 2. Open the preview to confirm the diagram renders correctly
 3. Export to PNG
 4. Commit both files inside the architecture directory following this structure:
+
 ```
 docs/
 └── architecture/
@@ -243,8 +259,6 @@ docs/
         ├── <diagram-name>.puml
         └── <diagram-name>.png
 ```
-
-
 
 Pull Requests missing the PNG export will be rejected.
 
@@ -255,4 +269,5 @@ Pull Requests missing the PNG export will be rejected.
 Please note that this project is released with a [Code of Conduct](https://www.google.com/search?q=CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 ## License
+
 By contributing, you agree that your contributions will be licensed under the project's MIT License.
