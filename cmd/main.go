@@ -385,6 +385,15 @@ var commands = map[string]CommandFunc{
 			}
 			return
 		}
+		if args[0] == "-d" || args[0] == "--delete" {
+			name := args[1]
+			if err := core.DeleteBranch(name); err != nil {
+				fmt.Println("Error:", err)
+			} else {
+				fmt.Println("Branch `" + name + "` deleted successfully")
+			}
+			return
+		}
 		name := args[0]
 		if core.IsBranch(name) {
 			fmt.Printf("Error: Branch '%s' already exists\n", name)

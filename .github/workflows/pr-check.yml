@@ -17,7 +17,7 @@ jobs:
             const hasImage = /!\[.*?\]\(.*?\)|<img|(\.png|\.jpg|\.jpeg|\.gif)/i.test(body);
             // Look for code blocks (proof of terminal output)
             const hasCodeBlock = /```[\s\S]*?```/.test(body);
-            
+
             if (!hasImage && !hasCodeBlock) {
                core.setFailed("PR Rejected: You must include a screenshot or terminal output proving your code works. Please edit the PR description.");
             } else {
