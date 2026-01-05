@@ -8,6 +8,13 @@ import (
 )
 
 func TestMoveFile(t *testing.T) {
+	// Restores the current working directory
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(cwd)
+
 	// Create temp directory
 	tmpDir := t.TempDir()
 
@@ -35,7 +42,7 @@ func TestMoveFile(t *testing.T) {
 	}
 
 	// Move file
-	if err := MoveFile(oldPath, newPath); err != nil {
+	if err := MoveFile(oldPath, newPath, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -57,6 +64,110 @@ func TestMoveFile(t *testing.T) {
 
 	if _, ok := idx[newPath]; !ok {
 		t.Fatalf("expected new file to be staged")
+	}
+}
+
+func TestMoveFile_DestinationExists(t *testing.T) {
+	// Restores the current working directory
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(cwd)
+
+	// Create temp directory
+	tmpDir := t.TempDir()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
+	}
+
+	// Initialize kitkat repository
+	if err := InitRepo(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create source and destination files
+	src := "source.txt"
+	dst := "destination.txt"
+	if err := os.WriteFile(src, []byte("hello"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(dst, []byte("hola"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Stage source and destination files
+	if err := AddFile(src); err != nil {
+		t.Fatal(err)
+	}
+	if err := AddFile(dst); err != nil {
+		t.Fatal(err)
+	}
+
+	// Moves the file without the flag
+	if err := MoveFile(src, dst, false); err == nil {
+		t.Fatalf("expected error when destination exists")
+	}
+
+	// Moves the file with the flag
+	if err := MoveFile(src, dst, true); err != nil {
+		t.Fatal(err)
+	}
+
+	// Checks for the files to be moved
+	if _, err := os.Stat(src); !os.IsNotExist(err) {
+		t.Fatalf("expected src to be moved")
+	}
+
+	if _, err := os.Stat(dst); err != nil {
+		t.Fatalf("expected dst to exist")
+	}
+
+	// Index should contain the destination file
+	idx, err := loadIndexForTest(filepath.Join(tmpDir, ".kitkat", "index"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, ok := idx[dst]; !ok {
+		t.Fatalf("expected new file to be staged")
+	}
+}
+
+func TestMoveFile_SamePath(t *testing.T) {
+	// Restores the current working directory
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(cwd)
+
+	// Create a temp directory
+	tmpDir := t.TempDir()
+	os.Chdir(tmpDir)
+
+	// Initialize kitkat repository
+	if err := InitRepo(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create source and destination files
+	f := "file"
+	if err := os.WriteFile(f, []byte("hello"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Stage source and destination files
+	if err := AddFile(f); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := MoveFile(f, f, false); err == nil {
+		t.Fatalf("expected error for same source and destination")
+	}
+
+	if err := MoveFile(f, f, true); err == nil {
+		t.Fatalf("expected error for same source and destination")
 	}
 }
 
