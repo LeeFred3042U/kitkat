@@ -13,6 +13,12 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_PRS_WEBHOOK }}
           DISCORD_MAINTAINER_ROLE_ID: ${{ secrets.DISCORD_MAINTAINER_ROLE_ID }}
         run: |
+          # Fail fast if webhook is not configured (common for forks)
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "ℹ️ DISCORD_WEBHOOK_URL not set, skipping Discord notification"
+            exit 0
+          fi
+
           ACTION="${{ github.event.action }}"
           TITLE="${{ github.event.pull_request.title }}"
           URL="${{ github.event.pull_request.html_url }}"
@@ -24,22 +30,25 @@ jobs:
             STATUS="merged"
           fi
 
-          # Collect labels
+          # Collect labels safely
           LABELS=$(jq -r '.pull_request.labels[].name' <<< '${{ toJson(github.event) }}')
 
           # Silence spam immediately
-          if echo "$LABELS" | grep -q "^spam$"; then
+          if echo "$LABELS" | grep -qx "spam"; then
             exit 0
           fi
 
           # Ping ONLY if Hard AND SWoC26
           PING=""
-          if echo "$LABELS" | grep -q "^Hard$" && echo "$LABELS" | grep -q "^SWoC26$"; then
-            PING="<@&${@&${DISCORD_MAINTAINER_ROLE_ID}}>"
+          if echo "$LABELS" | grep -qx "Hard" && echo "$LABELS" | grep -qx "SWoC26"; then
+            PING="<@&${DISCORD_MAINTAINER_ROLE_ID}>"
           fi
 
+          # Build JSON safely (handles backticks, quotes, newlines)
+          payload=$(jq -n \
+            --arg content "${PING} 🔀 **PR ${STATUS}**\n**${TITLE}**\nBy: ${USER}\n${URL}" \
+            '{content: $content}')
+
           curl -H "Content-Type: application/json" \
-            -d "{
-              \"content\": \"${PING} 🔀 **PR ${STATUS}**\n**${TITLE}**\nBy: ${USER}\n${URL}\"
-            }" \
-            $DISCORD_WEBHOOK_URL
+               -d "$payload" \
+               "$DISCORD_WEBHOOK_URL"
