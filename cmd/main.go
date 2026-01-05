@@ -396,11 +396,23 @@ var commands = map[string]CommandFunc{
 		}
 	},
 	"mv": func(args []string) {
-		if len(args) != 2 {
-			fmt.Println("Usage: kitkat mv <old_path> <new_path>")
+		force := false
+		paths := make([]string, 0, 2)
+
+		for _, arg := range args {
+			if arg == "-f" || arg == "--force" {
+				force = true
+				continue
+			}
+			paths = append(paths, arg)
+		}
+
+		if len(paths) != 2 {
+			fmt.Println("Usage: kitkat mv [-f|--force] <old_path> <new_path>")
 			return
 		}
-		if err := core.MoveFile(args[0], args[1]); err != nil {
+
+		if err := core.MoveFile(paths[0], paths[1], force); err != nil {
 			fmt.Println("Error:", err)
 		}
 	},
@@ -435,7 +447,6 @@ func main() {
 	cmd, args := os.Args[1], os.Args[2:]
 	if handler, ok := commands[cmd]; ok {
 		handler(args)
-
 	} else {
 		fmt.Println("Unknown command:", cmd)
 		core.PrintGeneralHelp()
