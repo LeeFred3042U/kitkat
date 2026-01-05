@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,19 +11,25 @@ import (
 )
 
 // Merge attempts to merge the given branch into the current branch
-// Currently only supports fast-forward merges
+// Currently only supports strict fast-forward merges
 func Merge(branchToMerge string) error {
-	// Pre-flight check to prevent overwriting local changes
+
+	// Guard: ensure we're inside a kitkat repo
+	if _, err := os.Stat(RepoDir); os.IsNotExist(err) {
+		return errors.New("not a kitkat repository (run `kitkat init`)")
+	}
+
+	//Safety Check: Verify working directory is clean
 	dirty, err := IsWorkDirDirty()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to check working directory status: %w", err)
 	}
 	if dirty {
-		return fmt.Errorf("your local changes would be overwritten by merge")
+		return fmt.Errorf("error: your local changes would be overwritten by merge. Please commit or stash them")
 	}
 
 	// Getting the commit hash of the branch to merge
-	branchPath := filepath.Join(headsDir, branchToMerge)
+	branchPath := filepath.Join(HeadsDir, branchToMerge)
 	featureHeadHashBytes, err := os.ReadFile(branchPath)
 	if err != nil {
 		return fmt.Errorf("branch '%s' not found", branchToMerge)
@@ -30,47 +37,47 @@ func Merge(branchToMerge string) error {
 	featureHeadHash := strings.TrimSpace(string(featureHeadHashBytes))
 
 	// Getting the commit hash of the current branch (HEAD)
-	currentHeadHash, err := readHEAD()
+	currentHeadHash, err := readHead()
 	if err != nil {
 		return fmt.Errorf("could not read current HEAD: %w", err)
 	}
 
-	// Checking if the current HEAD is an ancestor of the branch to merge
-	isAncestor, err := storage.IsAncestor(currentHeadHash, featureHeadHash)
+	//  Ancestry Check: Calculate merge base
+	mergeBase, err := storage.FindMergeBase(currentHeadHash, featureHeadHash)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to calculate merge base: %w", err)
 	}
 
-	if !isAncestor {
-		// If the feature branch commit is an ancestor of HEAD, we are up to date.
-		isAlreadyMerged, _ := storage.IsAncestor(featureHeadHash, currentHeadHash)
-		if isAlreadyMerged {
-			fmt.Println("Already up to date.")
-			return nil
-		}
-		return fmt.Errorf("not a fast-forward merge. Please rebase your branch")
+	// If MergeBase == HEAD: The target is ahead. Proceed.
+	if mergeBase == currentHeadHash {
+		// This is a fast-forward merge
+		fmt.Printf("Updating %s..%s\n", currentHeadHash[:7], featureHeadHash[:7])
+		fmt.Println("Fast-forward")
+	} else if mergeBase == featureHeadHash {
+		// If MergeBase == FeatureHead: We are already up to date (or ahead)
+		fmt.Println("Already up to date.")
+		return nil
+	} else {
+		// If MergeBase != HEAD and MergeBase != FeatureHead: Diverged
+		return fmt.Errorf("fatal: Not possible to fast-forward, aborting.\n"+
+			"Merge commits are not supported. Please rebase '%s' onto the current branch", branchToMerge)
 	}
 
-	// This is a fast-forward merge
-	// Get the path to the current branch file (e.g., .kitkat/refs/heads/main)
-	headData, _ := os.ReadFile(".kitkat/HEAD")
-	refPath := strings.TrimSpace(strings.TrimPrefix(string(headData), "ref: "))
-	currentBranchFile := filepath.Join(".kitkat", refPath)
-
-	// Update the current branch pointer to the new commit
-	if err := os.WriteFile(currentBranchFile, featureHeadHashBytes, 0644); err != nil {
+	// Fast-Forward Execution
+	if err := UpdateBranchPointer(featureHeadHash); err != nil {
 		return fmt.Errorf("failed to update branch pointer: %w", err)
 	}
 
 	// Update the working directory and index to match the new HEAD state
-	fmt.Printf("Updating files to match %s...\n", featureHeadHash[:7])
 	err = UpdateWorkspaceAndIndex(featureHeadHash)
 	if err != nil {
 		// Attempt to roll back the branch pointer on failure
-		os.WriteFile(currentBranchFile, []byte(currentHeadHash), 0644)
-		return fmt.Errorf("failed to update workspace: %w", err)
+		fmt.Printf("UpdateWorkspaceAndIndex failed: %v. Rolling back branch pointer...\n", err)
+		if rollbackErr := UpdateBranchPointer(currentHeadHash); rollbackErr != nil {
+			return fmt.Errorf("failed to update workspace: %w; additionally failed to rollback branch pointer: %v", err, rollbackErr)
+		}
+		return fmt.Errorf("failed to update workspace: %w; branch pointer rolled back to %s", err, currentHeadHash)
 	}
 
-	fmt.Printf("Merge successful. Fast-forwarded to %s\n", featureHeadHash)
 	return nil
 }
