@@ -17,7 +17,7 @@ We have organized contributions into three tracks. Please choose one that matche
 > Note:
 > These tracks describe **issue difficulty and learning scope only**.
 > They do **not** define Pull Request structure, review standards, or change risk.
-> PR review is based on the *type of change* (feature, fix, test, chore), not the issue difficulty label.
+> PR review is based on the _type of change_ (feature, fix, test, chore), not the issue difficulty label.
 
 ### Easy (Start Here)
 

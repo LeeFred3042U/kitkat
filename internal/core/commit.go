@@ -87,7 +87,7 @@ func Commit(message string) (models.Commit, string, error) {
 	}
 
 	branchFilePath := filepath.Join(".kitkat", refPath)
-	if err := os.WriteFile(branchFilePath, []byte(commit.ID), 0644); err != nil {
+	if err := SafeWrite(branchFilePath, []byte(commit.ID), 0644); err != nil {
 		return models.Commit{}, "", fmt.Errorf("failed to update branch pointer: %w", err)
 	}
 
@@ -138,7 +138,7 @@ func AmendCommit(newMessage string) (models.Commit, error) {
 	}
 
 	branchFilePath := filepath.Join(".kitkat", refPath)
-	if err := os.WriteFile(branchFilePath, []byte(amendedCommit.ID), 0644); err != nil {
+	if err := SafeWrite(branchFilePath, []byte(amendedCommit.ID), 0644); err != nil {
 		return models.Commit{}, fmt.Errorf("failed to update branch pointer: %w", err)
 	}
 

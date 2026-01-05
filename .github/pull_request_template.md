@@ -27,14 +27,17 @@ Describe **what changed**, not why it is good.
 Answer all that apply.
 
 **Does this PR change any user-facing command or flag?**
+
 - [ ] Yes
 - [ ] No
 
 **Does this PR change data formats, hashing, refs, or repo state?**
+
 - [ ] Yes
 - [ ] No
 
 **Does this PR introduce or modify filesystem interactions?**
+
 - [ ] Yes
 - [ ] No
 
@@ -49,9 +52,9 @@ If you answered “Yes” to any of the above, explain briefly:
 
 ## 4. Documentation Impact
 
-* [ ] This PR does NOT change documentation
-* [ ] This PR updates documentation to reflect behavior changes
-* [ ] This PR is documentation-only
+- [ ] This PR does NOT change documentation
+- [ ] This PR updates documentation to reflect behavior changes
+- [ ] This PR is documentation-only
 
 If documentation was updated, specify files:
 
@@ -67,15 +70,15 @@ If documentation was updated, specify files:
 
 Select all that apply.
 
-* [ ] **Unit tests** (pure logic, no disk, no `os.Chdir`, no `t.TempDir`)
-* [ ] **Integration tests** (filesystem + repo state)
-* [ ] No tests (only valid for **docs / chore** PRs)
+- [ ] **Unit tests** (pure logic, no disk, no `os.Chdir`, no `t.TempDir`)
+- [ ] **Integration tests** (filesystem + repo state)
+- [ ] No tests (only valid for **docs / chore** PRs)
 
 ### Test Details
 
-* Test files added or modified:
-* What behavior is proven by tests:
-* What behavior is **explicitly untested** (if any):
+- Test files added or modified:
+- What behavior is proven by tests:
+- What behavior is **explicitly untested** (if any):
 
 ```
 <details>
@@ -90,9 +93,9 @@ Select all that apply.
 
 Answer **Yes / No** and explain if Yes.
 
-* Could this PR cause KitKat behavior to diverge from Git?
-* Does this affect commit graphs, refs, hashes, or object semantics?
-* Is this change expected to impact future `.git` compatibility?
+- Could this PR cause KitKat behavior to diverge from Git?
+- Does this affect commit graphs, refs, hashes, or object semantics?
+- Is this change expected to impact future `.git` compatibility?
 
 ```
 <risk analysis>
@@ -106,9 +109,9 @@ List **exact steps** a reviewer can follow to verify this PR.
 
 Examples:
 
-* Commands run
-* Tests executed
-* Files inspected
+- Commands run
+- Tests executed
+- Files inspected
 
 ```
 1.
@@ -120,8 +123,8 @@ Examples:
 
 ## 8. Issue Linkage
 
-* Related Issue(s): `Fixes #___` / `Refs #___`
-* If no issue exists, explain why:
+- Related Issue(s): `Fixes #___` / `Refs #___`
+- If no issue exists, explain why:
 
 ```
 <explanation>
@@ -133,15 +136,15 @@ Examples:
 
 Select **exactly one** formatting option.
 
-* [ ] I have run `go fmt ./...` (required for all Go code changes)
-* [ ] This PR contains no Go code changes (docs / diagrams only)
+- [ ] I have run `go fmt ./...` (required for all Go code changes)
+- [ ] This PR contains no Go code changes (docs / diagrams only)
 
 Confirm all that apply:
 
-* [ ] PR type correctly selected
-* [ ] Test classification (unit vs integration) is accurate
-* [ ] No behavior change hidden as chore
-* [ ] All acceptance criteria in linked issues are met
+- [ ] PR type correctly selected
+- [ ] Test classification (unit vs integration) is accurate
+- [ ] No behavior change hidden as chore
+- [ ] All acceptance criteria in linked issues are met
 
 ---
 

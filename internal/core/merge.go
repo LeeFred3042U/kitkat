@@ -58,7 +58,7 @@ func Merge(branchToMerge string) error {
 	currentBranchFile := filepath.Join(".kitkat", refPath)
 
 	// Update the current branch pointer to the new commit
-	if err := os.WriteFile(currentBranchFile, featureHeadHashBytes, 0644); err != nil {
+	if err := SafeWrite(currentBranchFile, featureHeadHashBytes, 0644); err != nil {
 		return fmt.Errorf("failed to update branch pointer: %w", err)
 	}
 
@@ -67,7 +67,7 @@ func Merge(branchToMerge string) error {
 	err = UpdateWorkspaceAndIndex(featureHeadHash)
 	if err != nil {
 		// Attempt to roll back the branch pointer on failure
-		os.WriteFile(currentBranchFile, []byte(currentHeadHash), 0644)
+		SafeWrite(currentBranchFile, []byte(currentHeadHash), 0644)
 		return fmt.Errorf("failed to update workspace: %w", err)
 	}
 

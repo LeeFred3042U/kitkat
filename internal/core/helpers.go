@@ -39,7 +39,7 @@ func UpdateWorkspaceAndIndex(commitHash string) error {
 		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 			return err
 		}
-		if err := os.WriteFile(path, content, 0644); err != nil {
+		if err := SafeWrite(path, content, 0644); err != nil {
 			return err
 		}
 	}
@@ -178,14 +178,14 @@ func UpdateBranchPointer(commitHash string) error {
 		}
 
 		// Update the branch pointer
-		if err := os.WriteFile(branchFile, []byte(commitHash), 0644); err != nil {
+		if err := SafeWrite(branchFile, []byte(commitHash), 0644); err != nil {
 			return fmt.Errorf("failed to update branch pointer: %w", err)
 		}
 		return nil
 	}
 
 	// Case B: Detached HEAD (HEAD contains a commit hash directly)
-	if err := os.WriteFile(".kitkat/HEAD", []byte(commitHash), 0644); err != nil {
+	if err := SafeWrite(".kitkat/HEAD", []byte(commitHash), 0644); err != nil {
 		return fmt.Errorf("failed to update HEAD: %w", err)
 	}
 	return nil
@@ -252,4 +252,51 @@ func GetHeadCommit() (models.Commit, error) {
 func IsRepoInitialized() bool {
 	_, err := os.Stat(".kitkat")
 	return err == nil
+}
+
+// Write data in safe way
+func SafeWrite(filename string, data []byte, perm os.FileMode) error {
+	dirPath := filepath.Dir(filename)
+
+	// Create temp file
+	f, err := os.CreateTemp(dirPath, "atomic-")
+	if err != nil {
+		return err
+	}
+	tmpName := f.Name()
+
+	// Ensure cleanup of the temp file if we exit early
+	defer os.Remove(tmpName)
+
+	// Write data
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		return err
+	}
+
+	// Set Permissions
+	if err := f.Chmod(perm); err != nil {
+		f.Close()
+		return err
+	}
+
+	// Sync the file content
+	if err := f.Sync(); err != nil {
+		f.Close()
+		return err
+	}
+	f.Close()
+
+	if err := os.Rename(tmpName, filename); err != nil {
+		return err
+	}
+
+	// Sync Directory
+	d, err := os.Open(dirPath)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+
+	return d.Sync()
 }
