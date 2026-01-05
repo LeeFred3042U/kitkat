@@ -20,7 +20,7 @@ func ResetHard(commitHash string) error {
 	}
 
 	// Step 2: Save current HEAD for potential rollback
-	oldHeadCommit, err := readCurrentHeadCommit()
+	oldHeadCommit, err := readHead()
 	if err != nil {
 		return fmt.Errorf("fatal: unable to read HEAD file: %w", err)
 	}
