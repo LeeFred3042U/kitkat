@@ -147,3 +147,38 @@ func IsAncestor(ancestorHash, descendantHash string) (bool, error) {
 	}
 	return false, nil
 }
+
+// FindMergeBase calculates the best common ancestor between two commits.
+// Uses a simple ancestry path intersection (assumes linear/simple branching for now).
+func FindMergeBase(hash1, hash2 string) (string, error) {
+	if hash1 == hash2 {
+		return hash1, nil
+	}
+
+	// Trace ancestry of hash1
+	ancestors1 := make(map[string]bool)
+	current := hash1
+	for current != "" {
+		ancestors1[current] = true
+		c, err := FindCommit(current)
+		if err != nil {
+			return "", err
+		}
+		current = c.Parent
+	}
+
+	// Trace ancestry of hash2 and find first match
+	current = hash2
+	for current != "" {
+		if ancestors1[current] {
+			return current, nil
+		}
+		c, err := FindCommit(current)
+		if err != nil {
+			return "", err
+		}
+		current = c.Parent
+	}
+
+	return "", fmt.Errorf("no common ancestor found")
+}
