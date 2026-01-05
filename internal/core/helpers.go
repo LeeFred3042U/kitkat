@@ -51,7 +51,7 @@ func UpdateWorkspaceAndIndex(commitHash string) error {
 // GetHeadState returns the current branch name or detached HEAD state.
 // Returns the branch name (e.g., "main") if on a branch, or a detached HEAD description.
 func GetHeadState() (string, error) {
-	headData, err := os.ReadFile(".kitkat/HEAD")
+	headData, err := os.ReadFile(HeadPath)
 	if err != nil {
 		return "", err
 	}
@@ -160,7 +160,7 @@ func IsWorkDirDirty() (bool, error) {
 // UpdateBranchPointer updates the current branch pointer or HEAD to point to a specific commit.
 // Handles both branch mode (updates refs/heads/<branch>) and detached HEAD mode (updates HEAD directly).
 func UpdateBranchPointer(commitHash string) error {
-	headData, err := os.ReadFile(".kitkat/HEAD")
+	headData, err := os.ReadFile(HeadPath)
 	if err != nil {
 		return fmt.Errorf("unable to read HEAD file: %w", err)
 	}
@@ -185,16 +185,16 @@ func UpdateBranchPointer(commitHash string) error {
 	}
 
 	// Case B: Detached HEAD (HEAD contains a commit hash directly)
-	if err := SafeWrite(".kitkat/HEAD", []byte(commitHash), 0644); err != nil {
+	if err := SafeWrite(HeadPath, []byte(commitHash), 0644); err != nil {
 		return fmt.Errorf("failed to update HEAD: %w", err)
 	}
 	return nil
 }
 
-// readCurrentHeadCommit returns the commit hash that HEAD currently points to.
+// readHead returns the commit hash that HEAD currently points to.
 // This is useful for rollback operations.
-func readCurrentHeadCommit() (string, error) {
-	headData, err := os.ReadFile(".kitkat/HEAD")
+func readHead() (string, error) {
+	headData, err := os.ReadFile(HeadPath)
 	if err != nil {
 		return "", err
 	}
@@ -239,7 +239,7 @@ func IsSafePath(path string) bool {
 // After a reset, HEAD might point to an earlier commit than the last one in the log.
 func GetHeadCommit() (models.Commit, error) {
 	// Get the commit hash that HEAD points to
-	commitHash, err := readCurrentHeadCommit()
+	commitHash, err := readHead()
 	if err != nil {
 		return models.Commit{}, err
 	}
