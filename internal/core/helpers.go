@@ -185,7 +185,7 @@ func UpdateBranchPointer(commitHash string) error {
 	}
 
 	// Case B: Detached HEAD (HEAD contains a commit hash directly)
-	if err := SafeWrite(".kitkat/HEAD", []byte(commitHash), 0644); err != nil {
+	if err := SafeWrite(HeadPath, []byte(commitHash), 0644); err != nil {
 		return fmt.Errorf("failed to update HEAD: %w", err)
 	}
 	return nil
@@ -250,7 +250,7 @@ func GetHeadCommit() (models.Commit, error) {
 
 // IsRepoInitialized checks if the current directory is a valid kitkat repository.
 func IsRepoInitialized() bool {
-	_, err := os.Stat(".kitkat")
+	_, err := os.Stat(RepoDir)
 	return err == nil
 }
 
