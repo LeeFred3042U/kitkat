@@ -65,7 +65,7 @@ func RebaseInteractive(commitHash string) error {
 	if err != nil {
 		return err
 	}
-	headHash, err := readCurrentHeadCommit()
+	headHash, err := readHead()
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func RebaseContinue() error {
 		}
 
 		if cmd == "reword" {
-			head, _ := readCurrentHeadCommit()
+			head, _ := readHead()
 			newMsg := promptForMessage(msg)
 			if newMsg != msg {
 				amendCommitMessage(head, newMsg)
@@ -294,7 +294,7 @@ func RunRebaseLoop() error {
 // finishRebase finalizes the rebase by updating HEAD and cleaning up temporary state
 // returns an error if any operation fails
 func finishRebase(state *RebaseState) error {
-	headHash, err := readCurrentHeadCommit()
+	headHash, err := readHead()
 	if err != nil {
 		return err
 	}
