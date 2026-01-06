@@ -11,6 +11,7 @@ import (
 
 type CommandFunc func(args []string)
 
+// TODO: Create helper functions for exit codes to improve maintainability.
 var commands = map[string]CommandFunc{
 	"init": func(args []string) {
 		if err := core.InitRepo(); err != nil {
@@ -87,9 +88,6 @@ var commands = map[string]CommandFunc{
 			if err != nil {
 				if err.Error() == "nothing to commit, working tree clean" {
 					fmt.Println(err.Error())
-					os.Exit(1)
-				} else {
-					fmt.Println("Error:", err)
 					os.Exit(1)
 				}
 				os.Exit(2)
@@ -394,9 +392,6 @@ var commands = map[string]CommandFunc{
 			if ok {
 				fmt.Println(value)
 				os.Exit(0)
-			} else {
-				fmt.Printf("Error: %v not found", key)
-				os.Exit(1)
 			}
 		} else {
 			fmt.Println("Usage: kitkat config --global <key> [<value>]")
