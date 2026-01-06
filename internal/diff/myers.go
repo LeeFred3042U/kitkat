@@ -109,6 +109,9 @@ func (md *MyersDiff[T]) diffMain(text1, text2 []T) []Diff[T] {
 func (md *MyersDiff[T]) diffCompute(text1, text2 []T) []Diff[T] {
 	// If one of the texts is empty, the diff is a simple insertion or deletion.
 	if len(text1) == 0 {
+		if len(text2) == 0 {
+			return []Diff[T]{}
+		}
 		return []Diff[T]{{INSERT, text2}}
 	}
 	if len(text2) == 0 {
