@@ -37,3 +37,6 @@ kitkat
 .kitkat
 
 dump.sh
+
+# exception
+!.ci/run_kitkat.sh
