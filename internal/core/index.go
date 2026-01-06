@@ -22,6 +22,10 @@ func LoadIndex() ([]IndexEntry, error) {
 		return nil, err
 	}
 
+	if len(data) == 0 {
+		return []IndexEntry{}, nil
+	}
+
 	var entryMap map[string]string
 	err = json.Unmarshal(data, &entryMap)
 	if err != nil {
