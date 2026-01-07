@@ -50,13 +50,16 @@ For contributors comfortable reasoning about complex behavior
 ## Workflow (How to Contribute)
 
 - Go to the Issues tab or click [this](https://github.com/LeeFred3042U/kitkat/issues). Look for a label (Easy, Medium, etc)
-- Comment: "I want to work on this!"
-- When you are assigned the issue by the maintainer only then continue
+- Comment: "/assign"
+- You will be automatically assigned the issue by a bot
+- You cant be working on multiple issue at a time
+- When your pr is merged only then you may work on a new issue
+
 
 ### Prerequisites
 
 - **Go 1.24+** installed (Check `go.mod` for the exact version)
-- A text editor (VS Code recommended)
+- A text editor (VS Code and vim recommended)
 
 ## Setup
 
@@ -163,7 +166,25 @@ Manual testing is required
 - Please include (if code changes were made, else no need) a **screenshot** or **terminal output** or **screen recording** in your Pull Request description proving the command works as expected
 - Run `go fmt ./...` before you commit, else we have issues
 
-### 10. Push & PR
+### Before opening a Pull Request
+
+Before you open a PR, do these two things
+
+1. Sync with `main`:
+   - Run: `git fetch origin` then either:
+     - `git rebase origin/main` (preferred) or
+     - `git merge origin/main`
+   - Confirm: `git rev-parse --abbrev-ref HEAD` shows your feature branch and `git rev-list --left-right --count origin/main...HEAD` shows your branch is up to date with or ahead of `origin/main`.
+   - If you do not sync with `main`, your PR will be closed with the instruction to rebase/merge first.
+
+2. Squash commits for PRs targeting `main`:
+   - If your PR **targets `main`**, it must contain **exactly one commit**
+     - Squash locally: `git rebase -i origin/main` and squash into one commit
+     - Force-push: `git push --force-with-lease origin main`
+
+> NOTE: We enforce this manually - do not open a PR to `main` with multiple commits
+
+### Push & PR
 
 - Push your branch to your fork:
 
