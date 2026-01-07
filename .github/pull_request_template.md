@@ -2,95 +2,188 @@
 
 ## 1. PR Type (MANDATORY)
 
-Select **exactly one**.
+Select **exactly one**
 
-- [ ] **feat** – New user-facing command, flag, or engine capability
-- [ ] **fix** – Bug fix correcting existing behavior
-- [ ] **test** – Test-only changes (no production code)
-- [ ] **chore** – Refactor, docs, tooling, or cleanup (no behavior change)
+* [ ] **feat** – New user-facing command, flag, or engine capability
+* [ ] **fix** – Bug fix correcting existing behavior
+* [ ] **test** – Test-only changes (no production code)
+* [ ] **chore** – Refactor, docs, tooling, or cleanup (no behavior change)
 
 > ❗ PRs that do not clearly fit one category will be closed.
 
 ---
 
-## 2. Description (WHAT changed)
+## 2. Scope Guard (MANDATORY)
 
-Describe **what changed**, not why it is good.
+This PR is **strictly limited** to the following areas
 
-- Commands / files / subsystems affected:
-- Public API, CLI flags, or behavior changes (if any):
+**Allowed files / directories:**
+
+```
+- 
+```
+
+**Explicitly NOT allowed to change:**
+
+```
+- 
+```
+
+> ❗ Changes outside the declared scope require a new PR
+> ❗ “While I was here” changes will be rejected
+
+## Pre-PR Checklist (MANDATORY)
+
+Complete these checks before opening a PR. PRs that fail these checks will be closed.
+
+- [ ] I have fetched `origin` and integrated `origin/main` into my branch (rebase preferred):
+  - `git fetch origin`
+  - `git rebase origin/main`  # preferred
+  - or `git merge origin/main`  # allowed if you prefer merge
+  - Verify: `git rev-list --left-right --count origin/main...HEAD` (should show your branch is ancestor/behind/ahead as expected)
+
+- [ ] I confirm the base branch for this PR is: `__________` (fill in)
+
+- [ ] If the base branch is `main`, I have squashed my changes into **exactly one commit** and force-pushed:
+  - Interactive rebase and squash: `git rebase -i origin/main` → squash into one commit
+  - Force-push safely: `git push --force-with-lease origin <branch>`
+  - Verify single-commit: `git rev-list --count origin/main..HEAD` should equal `1`
+
+Notes:
+- PRs targeting `main` with more than one commit will be closed.
+- This checklist is enforced by maintainers  
+- Do not open a PR to `main` without satisfying these items.
+
 
 ---
 
-## 3. Intent Declaration (CRITICAL)
+## 3. Description (WHAT changed)
 
-Answer all that apply.
+Describe **what changed**, not why it is good
+
+* Commands / files / subsystems affected:
+* User-visible behavior or CLI changes (if any):
+
+```
+<description>
+```
+
+---
+
+## 4. Intent Declaration (CRITICAL)
+
+Answer all that apply
 
 **Does this PR change any user-facing command or flag?**
-- [ ] Yes
-- [ ] No
+
+* [ ] Yes
+* [ ] No
 
 **Does this PR change data formats, hashing, refs, or repo state?**
-- [ ] Yes
-- [ ] No
+
+* [ ] Yes
+* [ ] No
 
 **Does this PR introduce or modify filesystem interactions?**
-- [ ] Yes
-- [ ] No
+
+* [ ] Yes
+* [ ] No
 
 If you answered “Yes” to any of the above, explain briefly:
 
 ```
-
 <explanation>
 ```
 
 ---
 
-## 4. Documentation Impact
+## 5. Storage & Repo Safety Check (MANDATORY)
+
+Confirm all that apply:
+
+* [ ] This PR does NOT write to `.kitkat/objects`
+* [ ] This PR does NOT change index format or index location
+* [ ] This PR does NOT change hashing behavior
+* [ ] This PR does NOT add new object types
+
+If **any** box is unchecked:
+
+* A design issue **must** be linked
+* Migration or rollback notes **must** be included
+
+---
+
+## 6. Backward Compatibility
+
+Does this PR change behavior for existing kitkat repositories?
+
+* [ ] No
+* [ ] Yes
+
+If **Yes**, specify impact:
+
+* [ ] Existing repos break immediately
+* [ ] Existing repos break only for specific commands
+* [ ] Migration path provided
+
+```
+<compatibility notes>
+```
+
+---
+
+## 7. Documentation Impact
 
 * [ ] This PR does NOT change documentation
 * [ ] This PR updates documentation to reflect behavior changes
 * [ ] This PR is documentation-only
 
-If documentation was updated, specify files:
+If documentation was updated, list files:
 
 ```
-<list files>
+<files>
 ```
 
 ---
 
-## 5. Test Accountability (MANDATORY)
+## 8. Test Accountability (MANDATORY)
 
 ### Test Type Used
 
 Select all that apply.
 
-* [ ] **Unit tests** (pure logic, no disk, no `os.Chdir`, no `t.TempDir`)
-* [ ] **Integration tests** (filesystem + repo state)
+* [ ] **Unit tests** (pure logic only)
+* [ ] **Integration tests** (filesystem, repo state, or disk)
 * [ ] No tests (only valid for **docs / chore** PRs)
 
-### Test Details
-
-* Test files added or modified:
-* What behavior is proven by tests:
-* What behavior is **explicitly untested** (if any):
-
-```
-<details>
-```
-
-> ❗ Unit tests that touch disk or process state will be rejected.
+> ❗ Unit tests must NOT touch disk or process state.
+> ❗ Any test touching filesystem or repo state **must** be classified as integration.
 > ❗ Fix PRs **must** include a regression test.
 
 ---
 
-## 6. Git-Parity Risk Assessment (MANDATORY for feat / fix)
+### Test Expectations (REQUIRED)
 
-Answer **Yes / No** and explain if Yes.
+This PR proves the following invariants:
 
-* Could this PR cause KitKat behavior to diverge from Git?
+1.
+2.
+
+This PR explicitly does **NOT** test:
+
+1.
+
+## Failure modes covered by tests:
+
+## Failure modes NOT covered:
+
+---
+
+## 9. Git-Parity Risk Assessment (MANDATORY for feat / fix)
+
+Answer **Yes / No** and explain if Yes
+
+* Could this PR cause kitkat behavior to diverge from Git?
 * Does this affect commit graphs, refs, hashes, or object semantics?
 * Is this change expected to impact future `.git` compatibility?
 
@@ -100,15 +193,9 @@ Answer **Yes / No** and explain if Yes.
 
 ---
 
-## 7. Verification Steps (REQUIRED)
+## 10. Verification Steps (REQUIRED)
 
-List **exact steps** a reviewer can follow to verify this PR.
-
-Examples:
-
-* Commands run
-* Tests executed
-* Files inspected
+Exact steps a reviewer can follow to verify this PR
 
 ```
 1.
@@ -118,10 +205,11 @@ Examples:
 
 ---
 
-## 8. Issue Linkage
+## 11. Issue Linkage
 
 * Related Issue(s): `Fixes #___` / `Refs #___`
-* If no issue exists, explain why:
+
+If no issue exists, explain why:
 
 ```
 <explanation>
@@ -129,24 +217,41 @@ Examples:
 
 ---
 
-## 9. Final Checklist (NO GUESSING)
+## 12. Final Checklist (NO GUESSING)
 
-Select **exactly one** formatting option.
+Select **exactly one**:
 
-* [ ] I have run `go fmt ./...` (required for all Go code changes)
-* [ ] This PR contains no Go code changes (docs / diagrams only)
+* [ ] I have run `go fmt ./...`
+* [ ] This PR contains no Go code changes
 
 Confirm all that apply:
 
 * [ ] PR type correctly selected
-* [ ] Test classification (unit vs integration) is accurate
+* [ ] Scope guard respected
+* [ ] Intent declaration is accurate
+* [ ] Test classification is correct
 * [ ] No behavior change hidden as chore
+* [ ] I have synced my branch with `origin/main`
 * [ ] All acceptance criteria in linked issues are met
+* [ ] If this PR targets `main`, it contains exactly one commit (squashed)
+
+---
+
+## 13. Reviewer Kill Conditions (Read Carefully)
+
+This PR may be **closed without merge** if:
+
+* Scope guard is violated
+* Behavior changes are undeclared
+* Tests do not prove stated invariants
+* Storage / index / object risk is understated
+* Git-parity risk is hand-waved
 
 ---
 
 ### Reminder
 
 > If this PR changes behavior, it must say so
-> If it adds tests, it must classify them correctly
+> If it touches storage, it must admit it
+> If it relies on tests, they must prove invariants
 > If it hides risk, it will be rejected
