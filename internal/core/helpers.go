@@ -248,10 +248,33 @@ func GetHeadCommit() (models.Commit, error) {
 	return storage.FindCommit(commitHash)
 }
 
-// IsRepoInitialized checks if the current directory is a valid kitkat repository.
+// IsRepoInitialized checks if the current directory or any parent is a valid kitkat repository.
+// If found, it changes the current working directory to the repository root.
 func IsRepoInitialized() bool {
-	_, err := os.Stat(RepoDir)
-	return err == nil
+	cwd, err := os.Getwd()
+	if err != nil {
+		return false
+	}
+
+	for {
+		if _, err := os.Stat(filepath.Join(cwd, RepoDir)); err == nil {
+			// Found the repository root
+			// Update the working directory to the repo root so that
+			// all relative paths (RepoDir, etc.) are valid.
+			if err := os.Chdir(cwd); err != nil {
+				return false
+			}
+			return true
+		}
+
+		parent := filepath.Dir(cwd)
+		if parent == cwd {
+			// Reached the system root without finding .kitkat
+			return false
+		}
+		cwd = parent
+	}
+
 }
 
 // Write data in safe way
