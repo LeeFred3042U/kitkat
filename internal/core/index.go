@@ -14,12 +14,16 @@ type IndexEntry struct {
 
 // LoadIndex reads the .kitkat/index file
 func LoadIndex() ([]IndexEntry, error) {
-	data, err := os.ReadFile(".kitkat/index")
+	data, err := os.ReadFile(IndexPath)
 	if os.IsNotExist(err) {
 		return []IndexEntry{}, nil
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	if len(data) == 0 {
+		return []IndexEntry{}, nil
 	}
 
 	var entryMap map[string]string
@@ -37,7 +41,7 @@ func LoadIndex() ([]IndexEntry, error) {
 
 // SaveIndex writes the index back to disk
 func SaveIndex(entries []IndexEntry) error {
-	file, err := os.Create(".kitkat/index")
+	file, err := os.Create(IndexPath)
 	if err != nil {
 		return err
 	}
