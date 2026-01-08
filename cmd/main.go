@@ -11,12 +11,11 @@ import (
 
 type CommandFunc func(args []string)
 
-// TODO: Create helper functions for exit codes to improve maintainability.
 var commands = map[string]CommandFunc{
 	"init": func(args []string) {
 		if err := core.InitRepo(); err != nil {
 			fmt.Println("Error:", err)
-			os.Exit(0)
+			os.Exit(1)
 		}
 	},
 	"add": func(args []string) {
@@ -32,10 +31,6 @@ var commands = map[string]CommandFunc{
 			}
 			os.Exit(0)
 		}
-
-		// Tries to add all specified files,
-		// does not stop on the first failure.
-		// Instead exitCode tracks that any of the add operation failed.
 		exitCode := 0
 		for _, path := range args {
 			if err := core.AddFile(path); err != nil {
