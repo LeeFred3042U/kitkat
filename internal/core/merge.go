@@ -48,19 +48,25 @@ func Merge(branchToMerge string) error {
 		return fmt.Errorf("failed to calculate merge base: %w", err)
 	}
 
-	// If MergeBase == HEAD: The target is ahead. Proceed.
-	if mergeBase == currentHeadHash {
-		// This is a fast-forward merge
+	// Merge Type Determination
+	switch mergeBase {
+	case currentHeadHash:
+		// fast-forward
 		fmt.Printf("Updating %s..%s\n", currentHeadHash[:7], featureHeadHash[:7])
 		fmt.Println("Fast-forward")
-	} else if mergeBase == featureHeadHash {
-		// If MergeBase == FeatureHead: We are already up to date (or ahead)
+
+	case featureHeadHash:
+		// already up to date
 		fmt.Println("Already up to date.")
 		return nil
-	} else {
-		// If MergeBase != HEAD and MergeBase != FeatureHead: Diverged
-		return fmt.Errorf("fatal: Not possible to fast-forward, aborting.\n"+
-			"Merge commits are not supported. Please rebase '%s' onto the current branch", branchToMerge)
+
+	default:
+		// diverged
+		return fmt.Errorf(
+			"fatal: Not possible to fast-forward, aborting.\n"+
+				"Merge commits are not supported. Please rebase '%s' onto the current branch",
+			branchToMerge,
+		)
 	}
 
 	// Fast-Forward Execution

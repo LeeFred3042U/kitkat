@@ -1,8 +1,11 @@
 package core
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,6 +15,7 @@ import (
 
 // Restore a file in the working directory to its state in the last commit
 func CheckoutFile(filePath string) error {
+	// Get the target content (from HEAD/Last Commit)
 	lastCommit, err := storage.GetLastCommit()
 	if err != nil {
 		return err
@@ -27,6 +31,32 @@ func CheckoutFile(filePath string) error {
 		return errors.New("file not found in the last commit")
 	}
 
+	// SAFETY CHECK: Prevent overwriting dirty or untracked files
+	if _, err := os.Stat(filePath); err == nil {
+		// File exists, check if it is safe to overwrite
+		currentHash, err := calculateHash(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to calculate hash for safety check: %v", err)
+		}
+
+		// Load index to check if the file is tracked and clean
+		index, err := storage.LoadIndex()
+		if err != nil {
+			return err
+		}
+
+		if trackedHash, ok := index[filePath]; ok {
+			// File is tracked: fail if local changes exist (Index != Disk)
+			if currentHash != trackedHash {
+				return fmt.Errorf("error: local changes to '%s' would be overwritten", filePath)
+			}
+		} else {
+			// File exists but is NOT in the index (untracked): fail to prevent data loss
+			return fmt.Errorf("error: untracked file '%s' would be overwritten", filePath)
+		}
+	}
+
+	// Safe to overwrite: Perform the checkout
 	content, err := storage.ReadObject(blobHash)
 	if err != nil {
 		return err
@@ -116,4 +146,17 @@ func CheckoutCommit(commitHash string) error {
 	}
 
 	return os.WriteFile(".kitkat/HEAD", []byte(commitHash), 0644)
+}
+
+func calculateHash(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	h := sha1.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }

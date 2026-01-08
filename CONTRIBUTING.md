@@ -288,6 +288,13 @@ Pull Requests missing the PNG export will be rejected.
 
 ---
 
+
+## Security Reporting
+
+Please refer to [SECURITY.md](SECURITY.md) for details. Issues involving **data loss, repository corruption, or checkout/reset overwrites** must be reported privately via the email listed in `SECURITY.md` and **must NOT** be reported via public GitHub issues or Pull Requests
+
+---
+
 ## Code of Conduct
 
 Please note that this project is released with a [Code of Conduct](https://www.google.com/search?q=CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
