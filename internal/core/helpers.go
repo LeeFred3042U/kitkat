@@ -317,9 +317,10 @@ func SafeWrite(filename string, data []byte, perm os.FileMode) error {
 	// Sync Directory
 	d, err := os.Open(dirPath)
 	if err != nil {
-		return err
+		return nil
 	}
 	defer d.Close()
 
-	return d.Sync()
+	d.Sync()
+	return nil
 }
