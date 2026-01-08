@@ -28,7 +28,8 @@ func hashCommit(c models.Commit) string {
 
 // Commit creates a new snapshot of the repository based on the current state of the index
 // It prevents empty commits and returns the full commit object and a formatted summary
-func Commit(message string) (models.Commit, string, error) {
+// Unless allowEmpty is true
+func Commit(message string, allowEmpty bool) (models.Commit, string, error) {
 	authorName, _, _ := GetConfig("user.name")
 	if authorName == "" {
 		authorName = "Unknown"
@@ -52,7 +53,7 @@ func Commit(message string) (models.Commit, string, error) {
 		parentTreeHash = parentCommit.TreeHash
 	}
 
-	if treeHash == parentTreeHash {
+	if !allowEmpty && treeHash == parentTreeHash {
 		return models.Commit{}, "", errors.New("nothing to commit, working tree clean")
 	}
 
@@ -72,7 +73,7 @@ func Commit(message string) (models.Commit, string, error) {
 
 	refPath, err := getCurrentBranchRefPath()
 	if err != nil {
-		headData, readErr := os.ReadFile(".kitkat/HEAD")
+		headData, readErr := os.ReadFile(HeadPath)
 		if readErr != nil {
 			return models.Commit{}, "", fmt.Errorf("could not read HEAD: %w", readErr)
 		}
@@ -81,12 +82,12 @@ func Commit(message string) (models.Commit, string, error) {
 			return models.Commit{}, "", fmt.Errorf("cannot commit in detached HEAD state")
 		}
 		refPath = strings.TrimPrefix(ref, "ref: ")
-		if err := os.MkdirAll(filepath.Dir(filepath.Join(".kitkat", refPath)), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(filepath.Join(RepoDir, refPath)), 0755); err != nil {
 			return models.Commit{}, "", fmt.Errorf("could not create refs directory: %w", err)
 		}
 	}
 
-	branchFilePath := filepath.Join(".kitkat", refPath)
+	branchFilePath := filepath.Join(RepoDir, refPath)
 	if err := SafeWrite(branchFilePath, []byte(commit.ID), 0644); err != nil {
 		return models.Commit{}, "", fmt.Errorf("failed to update branch pointer: %w", err)
 	}
@@ -137,7 +138,7 @@ func AmendCommit(newMessage string) (models.Commit, error) {
 		return models.Commit{}, fmt.Errorf("failed to get current branch: %w", err)
 	}
 
-	branchFilePath := filepath.Join(".kitkat", refPath)
+	branchFilePath := filepath.Join(RepoDir, refPath)
 	if err := SafeWrite(branchFilePath, []byte(amendedCommit.ID), 0644); err != nil {
 		return models.Commit{}, fmt.Errorf("failed to update branch pointer: %w", err)
 	}
@@ -146,15 +147,15 @@ func AmendCommit(newMessage string) (models.Commit, error) {
 }
 
 // CommitAll is a convenience function that implements the `commit -am` shortcut.
-func CommitAll(message string) (models.Commit, string, error) {
+func CommitAll(message string, allowEmpty bool) (models.Commit, string, error) {
 	if err := AddAll(); err != nil {
 		return models.Commit{}, "", fmt.Errorf("failed to stage changes before committing: %w", err)
 	}
-	return Commit(message)
+	return Commit(message, allowEmpty)
 }
 
 func getCurrentBranchRefPath() (string, error) {
-	headData, err := os.ReadFile(".kitkat/HEAD")
+	headData, err := os.ReadFile(HeadPath)
 	if err != nil {
 		return "", err
 	}

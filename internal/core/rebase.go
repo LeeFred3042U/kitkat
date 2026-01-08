@@ -175,7 +175,7 @@ func RebaseContinue() error {
 	switch cmd {
 	case "pick", "reword":
 		msg := originalCommit.Message
-		_, _, err := Commit(msg)
+		_, _, err := Commit(msg, false)
 		if err != nil {
 			if strings.Contains(err.Error(), "nothing to commit") {
 				fmt.Println("Nothing to commit. Skipping step.")
@@ -361,7 +361,7 @@ func cherryPick(hash string, noCommit bool) error {
 	if noCommit {
 		return nil
 	}
-	_, _, err = Commit(commit.Message)
+	_, _, err = Commit(commit.Message, false)
 	if err != nil && strings.Contains(err.Error(), "nothing to commit") {
 		return nil
 	}

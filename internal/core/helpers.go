@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/LeeFred3042U/kitkat/internal/models"
@@ -315,11 +316,18 @@ func SafeWrite(filename string, data []byte, perm os.FileMode) error {
 	}
 
 	// Sync Directory
-	d, err := os.Open(dirPath)
-	if err != nil {
-		return err
+	// On Windows, syncing a directory opened with os.Open (read-only) causes Access Denied.
+	// Since directory sync is less critical on Windows/NTFS (journaling), we skip it.
+	if runtime.GOOS != "windows" {
+		d, err := os.Open(dirPath)
+		if err != nil {
+			return err
+		}
+		defer d.Close()
+		if err := d.Sync(); err != nil {
+			return err
+		}
 	}
-	defer d.Close()
 
-	return d.Sync()
+	return nil
 }

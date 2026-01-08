@@ -64,8 +64,14 @@ var commands = map[string]CommandFunc{
 			os.Exit(1)
 		}
 
+		allowEmpty := false
+		if len(args) > 0 && args[0] == "--allow-empty" {
+			allowEmpty = true
+			args = args[1:]
+		}
+
 		if len(args) < 2 {
-			fmt.Println("Usage: kitkat commit <-m | -am | --amend> <message>")
+			fmt.Println("Usage: kitkat commit [--allow-empty] <-m | -am | --amend> <message>")
 			os.Exit(2)
 		}
 
@@ -84,7 +90,7 @@ var commands = map[string]CommandFunc{
 		// Normal commit flow
 		case "-am":
 			message = strings.Join(args[1:], " ")
-			newCommit, summary, err := core.CommitAll(message)
+			newCommit, summary, err := core.CommitAll(message, allowEmpty)
 			if err != nil {
 				if err.Error() == "nothing to commit, working tree clean" {
 					fmt.Println(err.Error())
@@ -97,7 +103,7 @@ var commands = map[string]CommandFunc{
 		case "-m":
 			message = strings.Join(args[1:], " ")
 		default:
-			fmt.Println("Usage: kitkat commit <-m | -am | --amend> <message>")
+			fmt.Println("Usage: kitkat commit [--allow-empty] <-m | -am | --amend> <message>")
 			os.Exit(2)
 		}
 
@@ -117,7 +123,7 @@ var commands = map[string]CommandFunc{
 			fmt.Printf("[%s %s] %s (amended)\n", headState, newCommit.ID[:7], newCommit.Message)
 			os.Exit(0)
 		} else {
-			newCommit, summary, err := core.Commit(message)
+			newCommit, summary, err := core.Commit(message, allowEmpty)
 			if err != nil {
 				if err.Error() == "nothing to commit, working tree clean" {
 					fmt.Println(err.Error())
