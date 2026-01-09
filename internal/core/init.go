@@ -3,7 +3,10 @@ package core
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
+
+const hint = "\033[33m"
 
 // isPathExist checks if a path exist or not
 func isPathExist(path string) bool {
@@ -47,7 +50,11 @@ func InitRepo() error {
 	if err := os.WriteFile(HeadPath, headContent, 0644); err != nil {
 		return err
 	}
-
+	fmt.Printf("%sUsing 'main' as the name for the default branch.%s\n\n", hint, hint)
+	fmt.Printf("%sBranches can be renamed via this command:%s\n", hint, hint)
+	fmt.Printf("%s\tkitkat branch -m <branch_name>%s\n\n", hint, hint)
+	fmt.Printf("%sList all the branches via this command:%s\n", hint, hint)
+	fmt.Printf("%s\tkitkat branch -l%s\n", hint, hint)
 	// Generating empty main branch file.
 	if err := os.WriteFile(HeadsDir+"/main", []byte(""), 0o644); err != nil {
 		return err
@@ -59,6 +66,10 @@ func InitRepo() error {
 		return err
 	}
 
-	fmt.Printf("Initialized empty kitkat repository in ./%s/\n", RepoDir)
+	if absPath, err := filepath.Abs(RepoDir); err != nil {
+		return err
+	} else {
+		fmt.Printf("%s\nInitialized empty kitkat repository in %s\n\n%s", hint, absPath, hint)
+	}
 	return nil
 }
