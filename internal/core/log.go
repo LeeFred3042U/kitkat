@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/LeeFred3042U/kitkat/internal/models"
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/models"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 // ShowLog prints the commit log. It accepts a boolean for oneline format

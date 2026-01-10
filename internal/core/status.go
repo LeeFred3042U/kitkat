@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 // Status compares the state of the working directory, index, and last commit,

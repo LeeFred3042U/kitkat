@@ -49,7 +49,7 @@ For contributors comfortable reasoning about complex behavior
 
 ## Workflow (How to Contribute)
 
-- Go to the Issues tab or click [this](https://github.com/LeeFred3042U/kitkat/issues). Look for a label (Easy, Medium, etc)
+- Go to the Issues tab or click [this](https://github.com/LeeFred3042U/kitcat/issues). Look for a label (Easy, Medium, etc)
 - Comment: "/assign"
 - You will be automatically assigned the issue by a bot
 - You cant be working on multiple issue at a time
@@ -87,7 +87,7 @@ cd kitkat
 To keep your fork synchronized with the main repository, add the original repository as an upstream remote:
 
 ```bash
-git remote add upstream https://github.com/LeeFred3042U/kitkat.git
+git remote add upstream https://github.com/LeeFred3042U/kitcat.git
 ```
 
 Verify your remotes:
@@ -101,8 +101,8 @@ You should see:
 ```
 origin    https://github.com/username/kitkat.git (fetch)
 origin    https://github.com/username/kitkat.git (push)
-upstream  https://github.com/LeeFred3042U/kitkat.git (fetch)
-upstream  https://github.com/LeeFred3042U/kitkat.git (push)
+upstream  https://github.com/LeeFred3042U/kitcat.git (fetch)
+upstream  https://github.com/LeeFred3042U/kitcat.git (push)
 ```
 
 ### 4. Sync Your Fork

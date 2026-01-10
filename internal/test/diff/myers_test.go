@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/LeeFred3042U/kitkat/internal/diff"
+	"github.com/LeeFred3042U/kitcat/internal/diff"
 )
 
 func TestMyersDiff(t *testing.T) {

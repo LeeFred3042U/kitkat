@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 func AddFile(path string) error {

@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/models"
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/models"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 // getEditor returns the user's preferred text editor from the EDITOR environment variable

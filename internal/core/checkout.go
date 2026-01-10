@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 // Restore a file in the working directory to its state in the last commit

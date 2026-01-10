@@ -15,7 +15,7 @@ Get `kitkat` up and running on your local machine:
 
 ```bash
 # Clone and build
-git clone [https://github.com/LeeFred3042U/kitkat.git](https://github.com/LeeFred3042U/kitkat.git)
+git clone [https://github.com/LeeFred3042U/kitcat.git](https://github.com/LeeFred3042U/kitcat.git)
 cd kitkat
 go build -o kitkat ./cmd/main.go
 ```

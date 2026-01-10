@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 // ResetHard moves the current branch (or HEAD in detached state) to the specified commit
