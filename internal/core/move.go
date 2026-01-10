@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 func MoveFile(oldPath, newPath string, force bool) error {

@@ -3,7 +3,7 @@ package core_test
 import (
 	"testing"
 
-	"github.com/LeeFred3042U/kitkat/internal/core"
+	"github.com/LeeFred3042U/kitcat/internal/core"
 )
 
 func TestShouldIgnore(t *testing.T) {

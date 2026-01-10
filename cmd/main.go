@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/core"
-	"github.com/LeeFred3042U/kitkat/internal/models"
+	"github.com/LeeFred3042U/kitcat/internal/core"
+	"github.com/LeeFred3042U/kitcat/internal/models"
 )
 
 type CommandFunc func(args []string)

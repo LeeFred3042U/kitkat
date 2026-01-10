@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/diff"
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/diff"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 // ANSI color codes for formatting terminal output

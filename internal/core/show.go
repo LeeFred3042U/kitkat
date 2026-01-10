@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 // Displays the contents of a kitkat object

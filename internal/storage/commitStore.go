@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/LeeFred3042U/kitkat/internal/models"
+	"github.com/LeeFred3042U/kitcat/internal/models"
 )
 
 var ErrNoCommits = errors.New("no commits yet")

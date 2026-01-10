@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/LeeFred3042U/kitkat/internal/diff"
-	"github.com/LeeFred3042U/kitkat/internal/models"
-	"github.com/LeeFred3042U/kitkat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/diff"
+	"github.com/LeeFred3042U/kitcat/internal/models"
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 // note task - Move commit storage from commits.log to individual objects in .kitkat/objects/
