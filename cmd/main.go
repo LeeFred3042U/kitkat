@@ -480,6 +480,77 @@ var commands = map[string]CommandFunc{
 
 		os.Exit(0)
 	},
+	"stash": func(args []string) {
+		if !core.IsRepoInitialized() {
+			fmt.Println("Error: not a kitkat repository (or any of the parent directories): .kitkat")
+			os.Exit(1)
+		}
+
+		cmd := "push"
+		if len(args) > 0 {
+			cmd = args[0]
+		}
+
+		switch cmd {
+		case "push", "save":
+			message := ""
+			// Simple argument parsing
+			if cmd == "push" && len(args) > 2 && (args[1] == "-m" || args[1] == "--message") {
+				message = strings.Join(args[2:], " ")
+			} else if cmd == "save" && len(args) > 1 {
+				message = strings.Join(args[1:], " ")
+			}
+
+			if err := core.StashSave(message); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+		case "list":
+			if err := core.StashList(); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+		case "pop":
+			index := 0
+			if len(args) > 1 {
+				fmt.Sscanf(args[1], "%d", &index)
+			}
+			if err := core.StashPop(index); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+		case "apply":
+			index := 0
+			if len(args) > 1 {
+				fmt.Sscanf(args[1], "%d", &index)
+			}
+			if err := core.StashApply(index); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+		case "drop":
+			index := 0
+			if len(args) > 1 {
+				fmt.Sscanf(args[1], "%d", &index)
+			}
+			if err := core.StashDrop(index); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+		case "clear":
+			os.Remove(core.StashLogPath)
+			os.Remove(core.StashPath)
+			fmt.Println("Stash cleared")
+		default:
+			// Assume "kitkat stash <message>" maps to push
+			message := strings.Join(args, " ")
+			if err := core.StashSave(message); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+		}
+		os.Exit(0)
+	},
 }
 
 // printCommitResult formats and prints the commit result with summary
