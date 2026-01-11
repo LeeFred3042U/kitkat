@@ -112,10 +112,8 @@ Please read our **[CONTRIBUTING.md](./CONTRIBUTING.md)** for developer setup, co
 
 ## Reference Material
 
-To understand how kitcat maps to the original Git design philosophy, refer to the "OG" technical documentation:
-
-- **[Git Technical Documentation](https://github.com/git/git/blob/master/Documentation/technical/index.txt)**
-- **[Git: The Information Manager from Hell](https://github.com/git/git/blob/master/Documentation/RelNotes/0.99.txt)**
+Refer to the official Git documentation, to understand how git commands work:
+- [Git Documentation (Official)](https://git-scm.com/docs/git)
 
 ---
 
