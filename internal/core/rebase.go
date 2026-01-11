@@ -316,13 +316,13 @@ func finishRebase(state *RebaseState) error {
 // executePick applies the changes from the commit with the given hash onto the current HEAD
 // creates a new commit with the same message
 func executePick(hash string) error {
-	return cherryPick(hash, false)
+	return CherryPick(hash, false)
 }
 
 // executeReword applies the changes from the commit with the given hash onto the current HEAD
 // and prompts the user to edit the commit message
 func executeReword(hash string) error {
-	if err := cherryPick(hash, false); err != nil {
+	if err := CherryPick(hash, false); err != nil {
 		return err
 	}
 	head, _ := GetHeadCommit()
@@ -333,7 +333,7 @@ func executeReword(hash string) error {
 // executeSquash applies the changes from the commit with the given hash onto the current HEAD
 // and amends the previous commit with a combined message
 func executeSquash(hash string) error {
-	if err := cherryPick(hash, true); err != nil {
+	if err := CherryPick(hash, true); err != nil {
 		return err
 	}
 	prevHead, _ := GetHeadCommit()
@@ -342,10 +342,10 @@ func executeSquash(hash string) error {
 	return amendCommit(prevHead, newMsg)
 }
 
-// cherryPick applies the changes from the commit with the given hash onto the current HEAD
+// CherryPick applies the changes from the commit with the given hash onto the current HEAD
 // if noCommit is true, it applies the changes without creating a new commit
 // returns an error if any conflicts are detected
-func cherryPick(hash string, noCommit bool) error {
+func CherryPick(hash string, noCommit bool) error {
 	commit, err := storage.FindCommit(hash)
 	if err != nil {
 		return err
