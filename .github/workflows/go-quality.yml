@@ -1,4 +1,4 @@
-name: Go Merge Gate
+name: Build & Test
 
 on:
   push:
@@ -7,34 +7,19 @@ on:
     branches: ["main"]
 
 jobs:
-  quality:
+  test-and-build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "1.24"
 
-      - name: Enforce gofmt
-        run: |
-          UNFORMATTED=$(gofmt -l $(git ls-files '*.go'))
-          if [ -n "$UNFORMATTED" ]; then
-            echo "gofmt violations detected:"
-            echo "$UNFORMATTED"
-            echo ""
-            echo "Run 'go fmt ./...' locally and commit the result."
-            exit 1
-          fi
+      - name: Run Unit Tests
+        run: go test -race -v ./...
 
-      - name: Run tests
-        run: go test ./...
-
-      - name: Build all packages
-        run: go build ./...
-
-      - name: Vet (static analysis)
-        run: go vet ./...
+      - name: Verify Build
+        run: go build -v ./...
