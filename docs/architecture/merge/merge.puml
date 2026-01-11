@@ -1,0 +1,30 @@
+@startuml
+start
+:User runs kitkat merge <branch>;
+if (Is Working Directory Clean?) then (No)
+  :Error: "Changes would be overwritten";
+  stop
+else (Yes)
+  :Read <branch> Commit Hash;
+  :Read HEAD Commit Hash;
+  :Calculate Merge Base;
+  if (Merge Base == HEAD?) then (Yes)
+    :Note: Fast-Forward;
+    :Update Branch Pointer to <branch>;
+    if (Update Workspace & Index Succeeds?) then (Yes)
+      :Success;
+      stop
+    else (No)
+      :Rollback Branch Pointer;
+      :Error: "Failed to update workspace";
+      stop
+    endif
+  elseif (Merge Base == <branch>?) then (Yes)
+    :Print "Already up to date";
+    stop
+  else (No (Diverged))
+    :Error: "Not possible to fast-forward";
+    stop
+  endif
+endif
+@enduml
