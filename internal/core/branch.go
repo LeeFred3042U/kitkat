@@ -10,11 +10,11 @@ import (
 	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
-const headsDir string = ".kitkat/refs/heads"
+const headsDir string = ".kitcat/refs/heads"
 
 // Resolves the current commit hash by following the HEAD reference
 func readHEAD() (string, error) {
-	headData, err := os.ReadFile(".kitkat/HEAD")
+	headData, err := os.ReadFile(".kitcat/HEAD")
 	if err != nil {
 		return "", err
 	}
@@ -27,7 +27,7 @@ func readHEAD() (string, error) {
 
 // readCommitHash reads the commit hash from the reference path
 func readCommitHash(referencePath string) (string, error) {
-	commitHash, err := os.ReadFile(filepath.Join(".kitkat", referencePath))
+	commitHash, err := os.ReadFile(filepath.Join(".kitcat", referencePath))
 	if err != nil {
 		return "", err
 	}
@@ -53,19 +53,18 @@ func CreateBranch(name string) error {
 		commitHash = lastCommit.ID
 	}
 
-	if err := os.MkdirAll(headsDir, 0755); err != nil {
+	if err := os.MkdirAll(headsDir, 0o755); err != nil {
 		return err
 	}
 
 	branchPath := filepath.Join(headsDir, name)
-	return os.WriteFile(branchPath, []byte(strings.TrimSpace(commitHash)), 0644)
+	return os.WriteFile(branchPath, []byte(strings.TrimSpace(commitHash)), 0o644)
 }
 
 // Checks if a branch with the given name exists.
 func IsBranch(name string) bool {
 	branchPath := filepath.Join(headsDir, name)
 	if _, err := os.Stat(branchPath); err == nil {
-
 		return true
 	}
 	return false
@@ -104,7 +103,7 @@ func ListBranches() error {
 }
 
 func RenameCurrentBranch(newName string) error {
-	headPath := ".kitkat/HEAD"
+	headPath := ".kitcat/HEAD"
 	headContent, err := os.ReadFile(headPath)
 	if err != nil {
 		return err
@@ -115,8 +114,8 @@ func RenameCurrentBranch(newName string) error {
 		return errors.New("HEAD is not pointing to a branch")
 	}
 	oldName := strings.TrimPrefix(headStr, refPrefix)
-	oldRef := filepath.Join(".kitkat", "refs", "heads", oldName)
-	newRef := filepath.Join(".kitkat", "refs", "heads", newName)
+	oldRef := filepath.Join(".kitcat", "refs", "heads", oldName)
+	newRef := filepath.Join(".kitcat", "refs", "heads", newName)
 
 	if _, err := os.Stat(newRef); err == nil {
 		return fmt.Errorf("branch '%s' already exists", newName)
@@ -124,7 +123,7 @@ func RenameCurrentBranch(newName string) error {
 	if err := os.Rename(oldRef, newRef); err != nil {
 		return err
 	}
-	return os.WriteFile(headPath, []byte(refPrefix+newName+"\n"), 0644)
+	return os.WriteFile(headPath, []byte(refPrefix+newName+"\n"), 0o644)
 }
 
 // DeleteBranch deletes the branch
@@ -137,7 +136,10 @@ func DeleteBranch(name string) error {
 
 	// Checks if the branch is set to HEAD
 	if head == "refs/heads/"+name {
-		return fmt.Errorf("branch `%s` is currently active, switch to another branch and then try to delete again", name)
+		return fmt.Errorf(
+			"branch `%s` is currently active, switch to another branch and then try to delete again",
+			name,
+		)
 	}
 
 	if err := os.Remove(filepath.Join(headsDir, name)); err != nil {

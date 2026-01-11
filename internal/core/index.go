@@ -12,7 +12,7 @@ type IndexEntry struct {
 	Hash string
 }
 
-// LoadIndex reads the .kitkat/index file
+// LoadIndex reads the .kitcat/index file
 func LoadIndex() ([]IndexEntry, error) {
 	data, err := os.ReadFile(IndexPath)
 	if os.IsNotExist(err) {

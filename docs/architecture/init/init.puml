@@ -1,26 +1,26 @@
 @startuml init
-title Command: kitkat init
+title Command: kitcat init
 skinparam style strictuml
 start
-:User runs `kitkat init`;
+:User runs `kitcat init`;
 
 partition "Directory Setup" {
-  :Create .kitkat/;
-  :Create .kitkat/objects/;
-  :Create .kitkat/refs/heads/;
-  :Create .kitkat/refs/tags/;
+  :Create .kitcat/;
+  :Create .kitcat/objects/;
+  :Create .kitcat/refs/heads/;
+  :Create .kitcat/refs/tags/;
 }
 
 partition "File Initialization" {
-  :Create empty .kitkat/index;
-  :Create empty .kitkat/commits.log;
+  :Create empty .kitcat/index;
+  :Create empty .kitcat/commits.log;
 }
 
 partition "HEAD Setup" {
   :Write "ref: refs/heads/main";
-  :Save to .kitkat/HEAD;
+  :Save to .kitcat/HEAD;
 }
 
-:Print "Initialized empty KitKat repository";
+:Print "Initialized empty KitCat repository";
 stop
 @enduml

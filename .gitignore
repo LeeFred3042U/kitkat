@@ -26,17 +26,17 @@
 
 # Personal/text files
 hello.txt
-test_kitkat.sh
-kitkat_test_repo
+:est_kitcat.sh
+kitcat_test_repo
 .kitignore
 
 dump_code.sh
-kitkat_project_code.txt
-kitkat
+kitcat_project_code.txt
+kitcat
 
-.kitkat
+.kitcat
 
 dump.sh
 
 # exception
-!.ci/run_kitkat.sh
+!.ci/run_kitcat.sh

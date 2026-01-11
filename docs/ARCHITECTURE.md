@@ -1,6 +1,6 @@
 ## 1. Repository Initialization
 
-Logic for creating a new repository structure (`.kitkat` folders, HEAD, etc.).
+Logic for creating a new repository structure (`.kitcat` folders, HEAD, etc.).
 
 ![Init Flow](architecture/init/init.png)
 
@@ -18,7 +18,7 @@ Logic for creating a permanent snapshot from the Index.
 
 ## Status Command
 
-The `kitkat status` command determines the state of files by comparing
+The `kitcat status` command determines the state of files by comparing
 three trees: the HEAD commit, the Index (staging area), and the Working
 Directory.
 
