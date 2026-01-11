@@ -2,11 +2,11 @@
 ' DIAGRAM 1: CORE ARCHITECTURE (Class Diagram)
 ' =========================================================
 @startuml architecture
-title KitKat Core Data Model
+title KitCat Core Data Model
 skinparam style strictuml
 skinparam packageStyle rectangle
 
-package "Storage Layer (.kitkat/objects)" {
+package "Storage Layer (.kitcat/objects)" {
   class "Blob" as blob {
     + Content: []byte
     --
@@ -33,7 +33,7 @@ package "Storage Layer (.kitkat/objects)" {
   }
 }
 
-package "Reference Layer (.kitkat/refs)" {
+package "Reference Layer (.kitcat/refs)" {
   class "Branch" as branch {
     + Name: string
     + Target: Commit ID
@@ -62,7 +62,7 @@ commit --> commit : parent
 ' DIAGRAM 2: ADD FLOW (Activity Diagram)
 ' =========================================================
 @startuml flow-add
-title Command: kitkat add
+title Command: kitcat add
 start
 :Parse Arguments (File Path or --all);
 if (Is --all?) then (yes)
@@ -73,8 +73,8 @@ else (no)
 endif
 
 :Hash File Content (SHA-1);
-:Store Blob in .kitkat/objects/;
-:Load Current Index (.kitkat/index);
+:Store Blob in .kitcat/objects/;
+:Load Current Index (.kitcat/index);
 if (Hash exists in Index?) then (yes)
   :No change needed;
 else (no)
@@ -91,13 +91,13 @@ stop
 ' DIAGRAM 3: COMMIT FLOW (Activity Diagram)
 ' =========================================================
 @startuml flow-commit
-title Command: kitkat commit
+title Command: kitcat commit
 start
 :Load Index;
 :Generate Tree Object
 (Sort paths, content = "hash path");
 :Hash Tree Content -> TreeHash;
-:Store Tree in .kitkat/objects/;
+:Store Tree in .kitcat/objects/;
 
 :Load Parent Commit (HEAD);
 if (TreeHash == ParentTreeHash?) then (yes)
@@ -107,11 +107,11 @@ else (no)
   :Create Commit Object
   (Parent, TreeHash, Msg, Author);
   :Hash Commit -> CommitID;
-  :Store Commit in .kitkat/commits.log;
+  :Store Commit in .kitcat/commits.log;
 endif
 
 :Update Branch Reference
-(Write CommitID to .kitkat/refs/heads/<branch>);
+(Write CommitID to .kitcat/refs/heads/<branch>);
 :Print Summary;
 stop
 @enduml

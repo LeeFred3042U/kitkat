@@ -3,9 +3,11 @@ package core
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 func RemoveFile(filename string) error {
+	filename = filepath.Clean(filename)
 	index, err := LoadIndex()
 	if err != nil {
 		return fmt.Errorf("failed to load index: %w", err)
@@ -14,7 +16,7 @@ func RemoveFile(filename string) error {
 	found := false
 	newIndex := []IndexEntry{}
 	for _, entry := range index {
-		if entry.Path == filename {
+		if filepath.Clean(entry.Path) == filename {
 			found = true
 			continue
 		}
@@ -30,7 +32,6 @@ func RemoveFile(filename string) error {
 	}
 
 	if err := os.Remove(filename); err != nil {
-
 		if !os.IsNotExist(err) {
 			return err
 		}

@@ -1,9 +1,9 @@
 @startuml
-title Command: kitkat status
+title Command: kitcat status
 skinparam style strictuml
 
 start
-:User runs `kitkat status`;
+:User runs `kitcat status`;
 
 :Load HEAD Tree (Last Commit);
 :Load Index (Staging Area);

@@ -72,13 +72,24 @@ func TestMyersDiff(t *testing.T) {
 			got := d.Diffs()
 
 			if len(got) != len(tt.expected) {
-				t.Errorf("Diffs() length = %v, want %v\nGot: %v\nWant: %v", len(got), len(tt.expected), got, tt.expected)
+				t.Errorf(
+					"Diffs() length = %v, want %v\nGot: %v\nWant: %v",
+					len(got),
+					len(tt.expected),
+					got,
+					tt.expected,
+				)
 				return
 			}
 
 			for i := range got {
 				if got[i].Operation != tt.expected[i].Operation {
-					t.Errorf("Diffs()[%d].Operation = %v, want %v", i, got[i].Operation, tt.expected[i].Operation)
+					t.Errorf(
+						"Diffs()[%d].Operation = %v, want %v",
+						i,
+						got[i].Operation,
+						tt.expected[i].Operation,
+					)
 				}
 				if !reflect.DeepEqual(got[i].Text, tt.expected[i].Text) {
 					// Handle nil vs empty slice distinction if helpful, but DeepEqual handles []string{} vs nil as different.

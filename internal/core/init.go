@@ -14,7 +14,7 @@ func isPathExist(path string) bool {
 	return err == nil
 }
 
-// InitRepo sets up the .kitkat directory structure.
+// InitRepo sets up the .kitcat directory structure.
 func InitRepo() error {
 	// Checks if Repo is already initialized or not
 	if isPathExist(RepoDir) {
@@ -30,7 +30,7 @@ func InitRepo() error {
 	}
 
 	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0755); err != nil && !os.IsExist(err) {
+		if err := os.MkdirAll(dir, 0o755); err != nil && !os.IsExist(err) {
 			return err
 		}
 	}
@@ -47,29 +47,29 @@ func InitRepo() error {
 
 	// Create the HEAD file to point to the default branch (main).
 	headContent := []byte("ref: refs/heads/main")
-	if err := os.WriteFile(HeadPath, headContent, 0644); err != nil {
+	if err := os.WriteFile(HeadPath, headContent, 0o644); err != nil {
 		return err
 	}
 	fmt.Printf("%sUsing 'main' as the name for the default branch.%s\n\n", hint, hint)
 	fmt.Printf("%sBranches can be renamed via this command:%s\n", hint, hint)
-	fmt.Printf("%s\tkitkat branch -m <branch_name>%s\n\n", hint, hint)
+	fmt.Printf("%s\tkitcat branch -m <branch_name>%s\n\n", hint, hint)
 	fmt.Printf("%sList all the branches via this command:%s\n", hint, hint)
-	fmt.Printf("%s\tkitkat branch -l%s\n", hint, hint)
+	fmt.Printf("%s\tkitcat branch -l%s\n", hint, hint)
 	// Generating empty main branch file.
 	if err := os.WriteFile(HeadsDir+"/main", []byte(""), 0o644); err != nil {
 		return err
 	}
 
 	// Create default .kitignore to prevent self-tracking
-	ignoreContent := []byte(".DS_Store\nkitkat\nkitkat.exe\n")
-	if err := os.WriteFile(".kitignore", ignoreContent, 0644); err != nil {
+	ignoreContent := []byte(".DS_Store\nkitcat\nkitcat.exe\n")
+	if err := os.WriteFile(".kitignore", ignoreContent, 0o644); err != nil {
 		return err
 	}
 
 	if absPath, err := filepath.Abs(RepoDir); err != nil {
 		return err
 	} else {
-		fmt.Printf("%s\nInitialized empty kitkat repository in %s\n\n%s", hint, absPath, hint)
+		fmt.Printf("%s\nInitialized empty kitcat repository in %s\n\n%s", hint, absPath, hint)
 	}
 	return nil
 }
