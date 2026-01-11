@@ -11,6 +11,7 @@ import (
 )
 
 func AddFile(path string) error {
+	path = filepath.Clean(path)
 	if !IsSafePath(path) {
 		return fmt.Errorf("unsafe path detected: %s", path)
 	}
