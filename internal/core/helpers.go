@@ -36,10 +36,10 @@ func UpdateWorkspaceAndIndex(commitHash string) error {
 		if err != nil {
 			return err
 		}
-		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			return err
 		}
-		if err := SafeWrite(path, content, 0644); err != nil {
+		if err := SafeWrite(path, content, 0o644); err != nil {
 			return err
 		}
 	}
@@ -111,7 +111,8 @@ func IsWorkDirDirty() (bool, error) {
 		indexHash, inIndex := index[path]
 
 		// If there's any difference between HEAD and index, working dir is dirty
-		if (inIndex && !inHead) || (!inIndex && inHead) || (inIndex && inHead && headHash != indexHash) {
+		if (inIndex && !inHead) || (!inIndex && inHead) ||
+			(inIndex && inHead && headHash != indexHash) {
 			return true, nil
 		}
 	}
@@ -123,8 +124,9 @@ func IsWorkDirDirty() (bool, error) {
 		}
 		cleanPath := filepath.Clean(path)
 
-		// Skip the .kitkat directory and other directories
-		if info.IsDir() || strings.HasPrefix(cleanPath, RepoDir+string(os.PathSeparator)) || cleanPath == RepoDir {
+		// Skip the .kitcat directory and other directories
+		if info.IsDir() || strings.HasPrefix(cleanPath, RepoDir+string(os.PathSeparator)) ||
+			cleanPath == RepoDir {
 			return nil
 		}
 
@@ -145,7 +147,6 @@ func IsWorkDirDirty() (bool, error) {
 		}
 		return nil
 	})
-
 	// If we got an "untracked" or "modified" error, the working dir is dirty
 	if err != nil {
 		if err.Error() == "untracked" || err.Error() == "modified" {
@@ -169,7 +170,7 @@ func UpdateBranchPointer(commitHash string) error {
 	// Case A: HEAD points to a branch (ref: refs/heads/<branch>)
 	if strings.HasPrefix(ref, "ref: ") {
 		refPath := strings.TrimPrefix(ref, "ref: ")
-		branchFile := filepath.Join(".kitkat", refPath)
+		branchFile := filepath.Join(".kitcat", refPath)
 
 		// Verify branch file exists
 		if _, err := os.Stat(branchFile); err != nil {
@@ -178,14 +179,14 @@ func UpdateBranchPointer(commitHash string) error {
 		}
 
 		// Update the branch pointer
-		if err := SafeWrite(branchFile, []byte(commitHash), 0644); err != nil {
+		if err := SafeWrite(branchFile, []byte(commitHash), 0o644); err != nil {
 			return fmt.Errorf("failed to update branch pointer: %w", err)
 		}
 		return nil
 	}
 
 	// Case B: Detached HEAD (HEAD contains a commit hash directly)
-	if err := SafeWrite(HeadPath, []byte(commitHash), 0644); err != nil {
+	if err := SafeWrite(HeadPath, []byte(commitHash), 0o644); err != nil {
 		return fmt.Errorf("failed to update HEAD: %w", err)
 	}
 	return nil
@@ -203,7 +204,7 @@ func readHead() (string, error) {
 	// If HEAD points to a branch, read the branch file
 	if strings.HasPrefix(ref, "ref: ") {
 		refPath := strings.TrimPrefix(ref, "ref: ")
-		branchFile := filepath.Join(".kitkat", refPath)
+		branchFile := filepath.Join(".kitcat", refPath)
 		commitHash, err := os.ReadFile(branchFile)
 		if err != nil {
 			return "", err
@@ -248,7 +249,7 @@ func GetHeadCommit() (models.Commit, error) {
 	return storage.FindCommit(commitHash)
 }
 
-// IsRepoInitialized checks if the current directory or any parent is a valid kitkat repository.
+// IsRepoInitialized checks if the current directory or any parent is a valid kitcat repository.
 // If found, it changes the current working directory to the repository root.
 func IsRepoInitialized() bool {
 	cwd, err := os.Getwd()
@@ -269,12 +270,11 @@ func IsRepoInitialized() bool {
 
 		parent := filepath.Dir(cwd)
 		if parent == cwd {
-			// Reached the system root without finding .kitkat
+			// Reached the system root without finding .kitcat
 			return false
 		}
 		cwd = parent
 	}
-
 }
 
 // Write data in safe way

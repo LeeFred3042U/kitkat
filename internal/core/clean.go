@@ -14,9 +14,9 @@ import (
 // If includeIgnored is false, ignored files are preserved
 // If includeIgnored is true, ignored files are also removed
 func Clean(dryRun bool, includeIgnored bool) error {
-	// Guard: ensure we're inside a kitkat repo
+	// Guard: ensure we're inside a kitcat repo
 	if _, err := os.Stat(RepoDir); os.IsNotExist(err) {
-		return errors.New("not a kitkat repository (run `kitkat init`)")
+		return errors.New("not a kitcat repository (run `kitcat init`)")
 	}
 
 	index, err := storage.LoadIndex()

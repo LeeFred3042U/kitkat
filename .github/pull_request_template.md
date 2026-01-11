@@ -101,7 +101,7 @@ If you answered “Yes” to any of the above, explain briefly:
 
 Confirm all that apply:
 
-* [ ] This PR does NOT write to `.kitkat/objects`
+* [ ] This PR does NOT write to `.kitcat/objects`
 * [ ] This PR does NOT change index format or index location
 * [ ] This PR does NOT change hashing behavior
 * [ ] This PR does NOT add new object types
@@ -115,7 +115,7 @@ If **any** box is unchecked:
 
 ## 6. Backward Compatibility
 
-Does this PR change behavior for existing kitkat repositories?
+Does this PR change behavior for existing kitcat repositories?
 
 * [ ] No
 * [ ] Yes
@@ -183,7 +183,7 @@ This PR explicitly does **NOT** test:
 
 Answer **Yes / No** and explain if Yes
 
-* Could this PR cause kitkat behavior to diverge from Git?
+* Could this PR cause kitcat behavior to diverge from Git?
 * Does this affect commit graphs, refs, hashes, or object semantics?
 * Is this change expected to impact future `.git` compatibility?
 

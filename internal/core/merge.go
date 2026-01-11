@@ -13,19 +13,20 @@ import (
 // Merge attempts to merge the given branch into the current branch
 // Currently only supports strict fast-forward merges
 func Merge(branchToMerge string) error {
-
-	// Guard: ensure we're inside a kitkat repo
+	// Guard: ensure we're inside a kitcat repo
 	if _, err := os.Stat(RepoDir); os.IsNotExist(err) {
-		return errors.New("not a kitkat repository (run `kitkat init`)")
+		return errors.New("not a kitcat repository (run `kitcat init`)")
 	}
 
-	//Safety Check: Verify working directory is clean
+	// Safety Check: Verify working directory is clean
 	dirty, err := IsWorkDirDirty()
 	if err != nil {
 		return fmt.Errorf("failed to check working directory status: %w", err)
 	}
 	if dirty {
-		return fmt.Errorf("error: your local changes would be overwritten by merge. Please commit or stash them")
+		return fmt.Errorf(
+			"error: your local changes would be overwritten by merge. Please commit or stash them",
+		)
 	}
 
 	// Getting the commit hash of the branch to merge
@@ -80,9 +81,17 @@ func Merge(branchToMerge string) error {
 		// Attempt to roll back the branch pointer on failure
 		fmt.Printf("UpdateWorkspaceAndIndex failed: %v. Rolling back branch pointer...\n", err)
 		if rollbackErr := UpdateBranchPointer(currentHeadHash); rollbackErr != nil {
-			return fmt.Errorf("failed to update workspace: %w; additionally failed to rollback branch pointer: %v", err, rollbackErr)
+			return fmt.Errorf(
+				"failed to update workspace: %w; additionally failed to rollback branch pointer: %v",
+				err,
+				rollbackErr,
+			)
 		}
-		return fmt.Errorf("failed to update workspace: %w; branch pointer rolled back to %s", err, currentHeadHash)
+		return fmt.Errorf(
+			"failed to update workspace: %w; branch pointer rolled back to %s",
+			err,
+			currentHeadHash,
+		)
 	}
 
 	return nil

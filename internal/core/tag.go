@@ -7,15 +7,15 @@ import (
 	"sort"
 )
 
-const tagsDir = ".kitkat/refs/tags"
+const tagsDir = ".kitcat/refs/tags"
 
 // Creates a new lightweight tag pointing to a specific commit
 func CreateTag(tagName, commitID string) error {
 	if !IsRepoInitialized() {
-		return fmt.Errorf("not a kitkat repository (or any of the parent directories): .kitkat")
+		return fmt.Errorf("not a kitcat repository (or any of the parent directories): .kitcat")
 	}
 
-	if err := os.MkdirAll(tagsDir, 0755); err != nil {
+	if err := os.MkdirAll(tagsDir, 0o755); err != nil {
 		return err
 	}
 
@@ -28,7 +28,7 @@ func CreateTag(tagName, commitID string) error {
 	}
 
 	// Creates a new tag.
-	if err := os.WriteFile(tagPath, []byte(commitID), 0644); err != nil {
+	if err := os.WriteFile(tagPath, []byte(commitID), 0o644); err != nil {
 		return err
 	}
 
@@ -36,10 +36,12 @@ func CreateTag(tagName, commitID string) error {
 	return nil
 }
 
-// ListTags returns all tag names stored in .kitkat/refs/tags
+// ListTags returns all tag names stored in .kitcat/refs/tags
 func ListTags() ([]string, error) {
 	if !IsRepoInitialized() {
-		return nil, fmt.Errorf("not a kitkat repository (or any of the parent directories): .kitkat")
+		return nil, fmt.Errorf(
+			"not a kitcat repository (or any of the parent directories): .kitcat",
+		)
 	}
 
 	if _, err := os.Stat(tagsDir); err != nil {
