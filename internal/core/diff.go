@@ -175,8 +175,8 @@ func Diff(staged bool) error {
 
 			name := filepath.Base(path)
 
-			// Skip .kitkat directory
-			if name == ".kitkat" {
+			// Skip .kitcat directory
+			if name == ".kitcat" {
 				if d.IsDir() {
 					return filepath.SkipDir
 				}

@@ -10,7 +10,7 @@ import (
 func TestCLIExitCodeOnInvalidCommand(t *testing.T) {
 	// Setup isolated environment
 	tmpDir := t.TempDir()
-	binName := "kitkat"
+	binName := "kitcat"
 	if runtime.GOOS == "windows" {
 		binName += ".exe"
 	}
@@ -19,7 +19,7 @@ func TestCLIExitCodeOnInvalidCommand(t *testing.T) {
 	// Build the binary from current source
 	buildCmd := exec.Command("go", "build", "-o", binPath, "main.go")
 	if output, err := buildCmd.CombinedOutput(); err != nil {
-		t.Fatalf("Failed to build kitkat binary: %v\nOutput: %s", err, output)
+		t.Fatalf("Failed to build kitcat binary: %v\nOutput: %s", err, output)
 	}
 
 	// Run an invalid command
@@ -48,7 +48,7 @@ func TestCLIExitCodeOnInvalidCommand(t *testing.T) {
 		addErr := addCmd.Run()
 
 		if addErr == nil {
-			t.Errorf("FAIL: 'kitkat add' on missing file exited with code 0, expected non-zero")
+			t.Errorf("FAIL: 'kitcat add' on missing file exited with code 0, expected non-zero")
 		}
 	})
 }

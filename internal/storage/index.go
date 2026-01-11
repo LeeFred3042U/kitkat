@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 )
 
-const indexPath = ".kitkat/index"
+const indexPath = ".kitcat/index"
 
-// LoadIndex reads the .kitkat/index file (in JSON format) and returns it as a map
+// LoadIndex reads the .kitcat/index file (in JSON format) and returns it as a map
 // It returns an empty map if the file doesn't exist, which is normal for a new repository
 func LoadIndex() (map[string]string, error) {
 	index := make(map[string]string)
@@ -35,11 +35,11 @@ func LoadIndex() (map[string]string, error) {
 	return index, nil
 }
 
-// WriteIndex writes the index map to the .kitkat/index file atomically using a JSON format
+// WriteIndex writes the index map to the .kitcat/index file atomically using a JSON format
 // It uses a temporary file and an atomic rename to prevent corruption 'o'
 func WriteIndex(index map[string]string) error {
-	// Ensure the parent directory (.kitkat) exists.
-	if err := os.MkdirAll(filepath.Dir(indexPath), 0755); err != nil {
+	// Ensure the parent directory (.kitcat) exists.
+	if err := os.MkdirAll(filepath.Dir(indexPath), 0o755); err != nil {
 		return err
 	}
 

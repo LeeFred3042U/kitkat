@@ -1,8 +1,8 @@
 @startuml add
-title Command: kitkat add
+title Command: kitcat add
 skinparam style strictuml
 start
-:User runs `kitkat add ...`;
+:User runs `kitcat add ...`;
 :Parse Arguments (File Path or --all);
 
 if (Is --all?) then (yes)
@@ -16,11 +16,11 @@ endif
 partition "Object Storage" {
   :Read File Content;
   :Calculate SHA-1 Hash;
-  :Store Blob in .kitkat/objects/<hash>;
+  :Store Blob in .kitcat/objects/<hash>;
 }
 
 partition "Index Update" {
-  :Load Current Index (.kitkat/index);
+  :Load Current Index (.kitcat/index);
   if (Hash in Index == New Hash?) then (yes)
     :No change needed;
   else (no)

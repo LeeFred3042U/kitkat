@@ -45,7 +45,7 @@ func getEditor() (string, []string, error) {
 // returns an error if any operation fails
 func RebaseInteractive(commitHash string) error {
 	if !IsRepoInitialized() {
-		return fmt.Errorf("not a kitkat repository")
+		return fmt.Errorf("not a kitcat repository")
 	}
 
 	isDirty, err := IsWorkDirDirty()
@@ -85,7 +85,7 @@ func RebaseInteractive(commitHash string) error {
 
 	todoPath := filepath.Join(RepoDir, "rebase-todo")
 	todoContent := generateTodo(commitsToRebase)
-	if err := os.WriteFile(todoPath, []byte(todoContent), 0644); err != nil {
+	if err := os.WriteFile(todoPath, []byte(todoContent), 0o644); err != nil {
 		return err
 	}
 
@@ -128,15 +128,15 @@ func RebaseInteractive(commitHash string) error {
 	// Create temporary branch at ontoCommit
 	// This branch will be used as the new HEAD during the rebase
 	// It will be deleted after the rebase completes or is aborted
-	tmpBranch := "kitkat-rebase-tmp"
-	tmpBranchPath := filepath.Join(".kitkat", "refs", "heads", tmpBranch)
-	if err := os.MkdirAll(filepath.Dir(tmpBranchPath), 0755); err != nil {
+	tmpBranch := "kitcat-rebase-tmp"
+	tmpBranchPath := filepath.Join(".kitcat", "refs", "heads", tmpBranch)
+	if err := os.MkdirAll(filepath.Dir(tmpBranchPath), 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(tmpBranchPath, []byte(ontoCommit.ID), 0644); err != nil {
+	if err := os.WriteFile(tmpBranchPath, []byte(ontoCommit.ID), 0o644); err != nil {
 		return err
 	}
-	if err := os.WriteFile(".kitkat/HEAD", []byte("ref: refs/heads/"+tmpBranch), 0644); err != nil {
+	if err := os.WriteFile(".kitcat/HEAD", []byte("ref: refs/heads/"+tmpBranch), 0o644); err != nil {
 		return fmt.Errorf("failed to update HEAD: %w", err)
 	}
 	if err := UpdateWorkspaceAndIndex(ontoCommit.ID); err != nil {
@@ -221,10 +221,10 @@ func RebaseAbort() error {
 	fmt.Printf("Aborting rebase. restoring HEAD to %s\n", state.OrigHead[:7])
 
 	if state.HeadName != "" {
-		if err := os.WriteFile(".kitkat/HEAD", []byte("ref: "+state.HeadName), 0644); err != nil {
+		if err := os.WriteFile(".kitcat/HEAD", []byte("ref: "+state.HeadName), 0o644); err != nil {
 			return err
 		}
-		if err := os.WriteFile(filepath.Join(".kitkat", state.HeadName), []byte(state.OrigHead), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(".kitcat", state.HeadName), []byte(state.OrigHead), 0o644); err != nil {
 			return err
 		}
 		if err := UpdateWorkspaceAndIndex(state.OrigHead); err != nil {
@@ -236,7 +236,7 @@ func RebaseAbort() error {
 		}
 	}
 
-	os.Remove(filepath.Join(".kitkat", "refs", "heads", "kitkat-rebase-tmp"))
+	os.Remove(filepath.Join(".kitcat", "refs", "heads", "kitcat-rebase-tmp"))
 	return ClearRebaseState()
 }
 
@@ -280,8 +280,8 @@ func RunRebaseLoop() error {
 
 		if stepErr != nil {
 			fmt.Printf("Conflict or error at step %d: %v\n", state.CurrentStep+1, stepErr)
-			fmt.Println("Resolve conflicts, then run 'kitkat rebase --continue'.")
-			fmt.Println("To stop, run 'kitkat rebase --abort'.")
+			fmt.Println("Resolve conflicts, then run 'kitcat rebase --continue'.")
+			fmt.Println("To stop, run 'kitcat rebase --abort'.")
 			return nil
 		}
 
@@ -300,16 +300,16 @@ func finishRebase(state *RebaseState) error {
 	}
 
 	if state.HeadName != "" {
-		if err := os.WriteFile(".kitkat/HEAD", []byte("ref: "+state.HeadName), 0644); err != nil {
+		if err := os.WriteFile(".kitcat/HEAD", []byte("ref: "+state.HeadName), 0o644); err != nil {
 			return err
 		}
-		refPath := filepath.Join(".kitkat", state.HeadName)
-		if err := os.WriteFile(refPath, []byte(headHash), 0644); err != nil {
+		refPath := filepath.Join(".kitcat", state.HeadName)
+		if err := os.WriteFile(refPath, []byte(headHash), 0o644); err != nil {
 			return err
 		}
 	}
 
-	os.Remove(filepath.Join(".kitkat", "refs", "heads", "kitkat-rebase-tmp"))
+	os.Remove(filepath.Join(".kitcat", "refs", "heads", "kitcat-rebase-tmp"))
 	return ClearRebaseState()
 }
 
@@ -418,7 +418,10 @@ func applyChanges(changes map[string]Change) error {
 		if targetHash == "" {
 			headFileHash, existsInHead := headTree[path]
 			if existsInHead && headFileHash != change.OldHash {
-				return fmt.Errorf("conflict in %s: deleted in incoming commit, but modified in HEAD", path)
+				return fmt.Errorf(
+					"conflict in %s: deleted in incoming commit, but modified in HEAD",
+					path,
+				)
 			}
 			if err := RemoveFile(path); err != nil {
 				return err
@@ -437,10 +440,10 @@ func applyChanges(changes map[string]Change) error {
 				return fmt.Errorf("conflict in %s: modified in incoming commit, but deleted in HEAD", path)
 			}
 
-			if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 				return err
 			}
-			if err := os.WriteFile(path, content, 0644); err != nil {
+			if err := os.WriteFile(path, content, 0o644); err != nil {
 				return err
 			}
 			if err := AddFile(path); err != nil {
@@ -512,8 +515,8 @@ func getCommitsBetween(start, end string) ([]string, error) {
 // promptForMessage opens the user's editor to edit the commit message, starting with defaultMsg
 // and returns the edited message
 func promptForMessage(defaultMsg string) string {
-	tmp := ".kitkat/COMMIT_EDITMSG"
-	os.WriteFile(tmp, []byte(defaultMsg), 0644)
+	tmp := ".kitcat/COMMIT_EDITMSG"
+	os.WriteFile(tmp, []byte(defaultMsg), 0o644)
 
 	editor, editorArgs, err := getEditor()
 	if err != nil {
@@ -575,11 +578,11 @@ func saveObject(content []byte) (string, error) {
 	h := sha1.New()
 	h.Write(content)
 	hash := fmt.Sprintf("%x", h.Sum(nil))
-	objPath := filepath.Join(".kitkat", "objects", hash)
-	if err := os.MkdirAll(filepath.Dir(objPath), 0755); err != nil {
+	objPath := filepath.Join(".kitcat", "objects", hash)
+	if err := os.MkdirAll(filepath.Dir(objPath), 0o755); err != nil {
 		return "", err
 	}
-	if err := os.WriteFile(objPath, content, 0644); err != nil {
+	if err := os.WriteFile(objPath, content, 0o644); err != nil {
 		return "", err
 	}
 	return hash, nil

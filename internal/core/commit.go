@@ -15,7 +15,7 @@ import (
 	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
-// note task - Move commit storage from commits.log to individual objects in .kitkat/objects/
+// note task - Move commit storage from commits.log to individual objects in .kitcat/objects/
 // hashCommit creates a unique, content-based SHA-1 hash for a Commit object.
 func hashCommit(c models.Commit) string {
 	h := sha1.New()
@@ -72,7 +72,7 @@ func Commit(message string) (models.Commit, string, error) {
 
 	refPath, err := getCurrentBranchRefPath()
 	if err != nil {
-		headData, readErr := os.ReadFile(".kitkat/HEAD")
+		headData, readErr := os.ReadFile(".kitcat/HEAD")
 		if readErr != nil {
 			return models.Commit{}, "", fmt.Errorf("could not read HEAD: %w", readErr)
 		}
@@ -81,13 +81,13 @@ func Commit(message string) (models.Commit, string, error) {
 			return models.Commit{}, "", fmt.Errorf("cannot commit in detached HEAD state")
 		}
 		refPath = strings.TrimPrefix(ref, "ref: ")
-		if err := os.MkdirAll(filepath.Dir(filepath.Join(".kitkat", refPath)), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(filepath.Join(".kitcat", refPath)), 0o755); err != nil {
 			return models.Commit{}, "", fmt.Errorf("could not create refs directory: %w", err)
 		}
 	}
 
-	branchFilePath := filepath.Join(".kitkat", refPath)
-	if err := SafeWrite(branchFilePath, []byte(commit.ID), 0644); err != nil {
+	branchFilePath := filepath.Join(".kitcat", refPath)
+	if err := SafeWrite(branchFilePath, []byte(commit.ID), 0o644); err != nil {
 		return models.Commit{}, "", fmt.Errorf("failed to update branch pointer: %w", err)
 	}
 
@@ -137,8 +137,8 @@ func AmendCommit(newMessage string) (models.Commit, error) {
 		return models.Commit{}, fmt.Errorf("failed to get current branch: %w", err)
 	}
 
-	branchFilePath := filepath.Join(".kitkat", refPath)
-	if err := SafeWrite(branchFilePath, []byte(amendedCommit.ID), 0644); err != nil {
+	branchFilePath := filepath.Join(".kitcat", refPath)
+	if err := SafeWrite(branchFilePath, []byte(amendedCommit.ID), 0o644); err != nil {
 		return models.Commit{}, fmt.Errorf("failed to update branch pointer: %w", err)
 	}
 
@@ -154,7 +154,7 @@ func CommitAll(message string) (models.Commit, string, error) {
 }
 
 func getCurrentBranchRefPath() (string, error) {
-	headData, err := os.ReadFile(".kitkat/HEAD")
+	headData, err := os.ReadFile(".kitcat/HEAD")
 	if err != nil {
 		return "", err
 	}

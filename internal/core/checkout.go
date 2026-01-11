@@ -62,7 +62,7 @@ func CheckoutFile(filePath string) error {
 		return err
 	}
 
-	return os.WriteFile(filePath, content, 0644)
+	return os.WriteFile(filePath, content, 0o644)
 }
 
 // Switch the current HEAD to the named branch and updates the working directory.
@@ -90,7 +90,9 @@ func CheckoutBranch(name string) error {
 		return fmt.Errorf("could not check for local changes: %w", err)
 	}
 	if isDirty {
-		return errors.New("error: Your local changes to the following files would be overwritten by checkout:\n\tPlease commit your changes or stash them before you switch branches")
+		return errors.New(
+			"error: Your local changes to the following files would be overwritten by checkout:\n\tPlease commit your changes or stash them before you switch branches",
+		)
 	}
 
 	// Before making changes, we should check if the user has unstaged work
@@ -114,10 +116,10 @@ func CheckoutBranch(name string) error {
 			return err
 		}
 		// Ensure directory exists before writing file
-		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			return err
 		}
-		if err := os.WriteFile(path, content, 0644); err != nil {
+		if err := os.WriteFile(path, content, 0o644); err != nil {
 			return err
 		}
 	}
@@ -129,7 +131,7 @@ func CheckoutBranch(name string) error {
 
 	// Update HEAD to point to the new branch
 	newHEADContent := fmt.Sprintf("ref: refs/heads/%s", name)
-	return os.WriteFile(".kitkat/HEAD", []byte(newHEADContent), 0644)
+	return os.WriteFile(".kitcat/HEAD", []byte(newHEADContent), 0o644)
 }
 
 // CheckoutCommit moves HEAD to a specific commit and updates the working directory
@@ -145,7 +147,7 @@ func CheckoutCommit(commitHash string) error {
 		return err
 	}
 
-	return os.WriteFile(".kitkat/HEAD", []byte(commitHash), 0644)
+	return os.WriteFile(".kitcat/HEAD", []byte(commitHash), 0o644)
 }
 
 func calculateHash(path string) (string, error) {

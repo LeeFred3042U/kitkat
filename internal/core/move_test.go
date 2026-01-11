@@ -23,7 +23,7 @@ func TestMoveFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Initialize kitkat repository
+	// Initialize kitcat repository
 	if err := InitRepo(); err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestMoveFile(t *testing.T) {
 	newPath := "new_test.txt"
 
 	// Create old file
-	if err := os.WriteFile(oldPath, []byte("hello"), 0644); err != nil {
+	if err := os.WriteFile(oldPath, []byte("hello"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -57,7 +57,7 @@ func TestMoveFile(t *testing.T) {
 	}
 
 	// Index should contain new file
-	idx, err := loadIndexForTest(filepath.Join(tmpDir, ".kitkat", "index"))
+	idx, err := loadIndexForTest(filepath.Join(tmpDir, ".kitcat", "index"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestMoveFile_DestinationExists(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Initialize kitkat repository
+	// Initialize kitcat repository
 	if err := InitRepo(); err != nil {
 		t.Fatal(err)
 	}
@@ -89,10 +89,10 @@ func TestMoveFile_DestinationExists(t *testing.T) {
 	// Create source and destination files
 	src := "source.txt"
 	dst := "destination.txt"
-	if err := os.WriteFile(src, []byte("hello"), 0644); err != nil {
+	if err := os.WriteFile(src, []byte("hello"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(dst, []byte("hola"), 0644); err != nil {
+	if err := os.WriteFile(dst, []byte("hola"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -124,7 +124,7 @@ func TestMoveFile_DestinationExists(t *testing.T) {
 	}
 
 	// Index should contain the destination file
-	idx, err := loadIndexForTest(filepath.Join(tmpDir, ".kitkat", "index"))
+	idx, err := loadIndexForTest(filepath.Join(tmpDir, ".kitcat", "index"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,14 +146,14 @@ func TestMoveFile_SamePath(t *testing.T) {
 	tmpDir := t.TempDir()
 	os.Chdir(tmpDir)
 
-	// Initialize kitkat repository
+	// Initialize kitcat repository
 	if err := InitRepo(); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create source and destination files
 	f := "file"
-	if err := os.WriteFile(f, []byte("hello"), 0644); err != nil {
+	if err := os.WriteFile(f, []byte("hello"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

@@ -8,13 +8,13 @@ import (
 	"strings"
 )
 
-// getConfigPath returns the absolute path to the global kitkat config file
+// getConfigPath returns the absolute path to the global kitcat config file
 func getConfigPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(homeDir, ".kitkatconfig"), nil
+	return filepath.Join(homeDir, ".kitcatconfig"), nil
 }
 
 // readConfig loads the config file into a map

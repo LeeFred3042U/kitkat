@@ -20,7 +20,7 @@ var commands = map[string]CommandFunc{
 	},
 	"add": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitkat add <file-path>")
+			fmt.Println("Usage: kitcat add <file-path>")
 			os.Exit(2)
 		}
 		if args[0] == "-A" || args[0] == "--all" {
@@ -42,7 +42,7 @@ var commands = map[string]CommandFunc{
 	},
 	"rm": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitkat rm <file>")
+			fmt.Println("Usage: kitcat rm <file>")
 			os.Exit(2)
 		}
 		filename := args[0]
@@ -55,12 +55,14 @@ var commands = map[string]CommandFunc{
 	},
 	"commit": func(args []string) {
 		if !core.IsRepoInitialized() {
-			fmt.Println("Error: not a kitkat repository (or any of the parent directories): .kitkat")
+			fmt.Println(
+				"Error: not a kitcat repository (or any of the parent directories): .kitcat",
+			)
 			os.Exit(1)
 		}
 
 		if len(args) < 2 {
-			fmt.Println("Usage: kitkat commit <-m | -am | --amend> <message>")
+			fmt.Println("Usage: kitcat commit <-m | -am | --amend> <message>")
 			os.Exit(2)
 		}
 
@@ -71,7 +73,7 @@ var commands = map[string]CommandFunc{
 		// Checks for amending
 		case "--amend":
 			if len(args) < 3 || args[1] != "-m" {
-				fmt.Println("Usage: kitkat commit --amend -m <message>")
+				fmt.Println("Usage: kitcat commit --amend -m <message>")
 				os.Exit(2)
 			}
 			isAmend = true
@@ -92,7 +94,7 @@ var commands = map[string]CommandFunc{
 		case "-m":
 			message = strings.Join(args[1:], " ")
 		default:
-			fmt.Println("Usage: kitkat commit <-m | -am | --amend> <message>")
+			fmt.Println("Usage: kitcat commit <-m | -am | --amend> <message>")
 			os.Exit(2)
 		}
 
@@ -105,7 +107,7 @@ var commands = map[string]CommandFunc{
 			}
 			headState, err := core.GetHeadState()
 			if err != nil {
-				headData, _ := os.ReadFile(".kitkat/HEAD")
+				headData, _ := os.ReadFile(".kitcat/HEAD")
 				ref := strings.TrimSpace(string(headData))
 				headState = strings.TrimPrefix(ref, "ref: refs/heads/")
 			}
@@ -184,12 +186,12 @@ var commands = map[string]CommandFunc{
 	},
 	"checkout": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitkat checkout [-b] <branch-name> | <file-path>")
+			fmt.Println("Usage: kitcat checkout [-b] <branch-name> | <file-path>")
 			os.Exit(2)
 		}
 		if args[0] == "-b" {
 			if len(args) != 2 {
-				fmt.Println("Usage: kitkat checkout -b <branch-name>")
+				fmt.Println("Usage: kitcat checkout -b <branch-name>")
 				os.Exit(2)
 			}
 			name := args[1]
@@ -222,7 +224,7 @@ var commands = map[string]CommandFunc{
 	},
 	"merge": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitkat merge <branch-name>")
+			fmt.Println("Usage: kitcat merge <branch-name>")
 			os.Exit(2)
 		}
 		if err := core.Merge(args[0]); err != nil {
@@ -233,12 +235,12 @@ var commands = map[string]CommandFunc{
 	},
 	"reset": func(args []string) {
 		if len(args) < 2 {
-			fmt.Println("Usage: kitkat reset --hard <commit-hash>")
+			fmt.Println("Usage: kitcat reset --hard <commit-hash>")
 			os.Exit(2)
 		}
 		if args[0] != "--hard" {
 			fmt.Println("Error: only 'reset --hard' is currently supported")
-			fmt.Println("Usage: kitkat reset --hard <commit-hash>")
+			fmt.Println("Usage: kitcat reset --hard <commit-hash>")
 			os.Exit(2)
 		}
 		if err := core.ResetHard(args[1]); err != nil {
@@ -249,7 +251,7 @@ var commands = map[string]CommandFunc{
 	},
 	"rebase": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitkat rebase [-i <commit> | --continue | --abort]")
+			fmt.Println("Usage: kitcat rebase [-i <commit> | --continue | --abort]")
 			os.Exit(2)
 		}
 
@@ -268,7 +270,7 @@ var commands = map[string]CommandFunc{
 			os.Exit(0)
 		case "-i":
 			if len(args) < 2 {
-				fmt.Println("Usage: kitkat rebase -i <commit>")
+				fmt.Println("Usage: kitcat rebase -i <commit>")
 				os.Exit(2)
 			}
 			if err := core.RebaseInteractive(args[1]); err != nil {
@@ -278,13 +280,15 @@ var commands = map[string]CommandFunc{
 			os.Exit(0)
 		default:
 			// If no flag, assumes simple rebase which isn't requested but we can default to error
-			fmt.Println("Usage: kitkat rebase [-i <commit> | --continue | --abort]")
+			fmt.Println("Usage: kitcat rebase [-i <commit> | --continue | --abort]")
 			os.Exit(2)
 		}
 	},
 	"ls-files": func(args []string) {
 		if !core.IsRepoInitialized() {
-			fmt.Println("Error: not a kitkat repository (or any of the parent directories): .kitkat")
+			fmt.Println(
+				"Error: not a kitcat repository (or any of the parent directories): .kitcat",
+			)
 			os.Exit(1)
 		}
 
@@ -313,7 +317,7 @@ var commands = map[string]CommandFunc{
 		}
 
 		if !force {
-			fmt.Println("This will delete untracked files. Run 'kitkat clean -f' to proceed.")
+			fmt.Println("This will delete untracked files. Run 'kitcat clean -f' to proceed.")
 			os.Exit(0)
 		}
 
@@ -334,7 +338,9 @@ var commands = map[string]CommandFunc{
 	},
 	"tag": func(args []string) {
 		if !core.IsRepoInitialized() {
-			fmt.Println("Error: not a kitkat repository (or any of the parent directories): .kitkat")
+			fmt.Println(
+				"Error: not a kitcat repository (or any of the parent directories): .kitcat",
+			)
 			os.Exit(1)
 		}
 
@@ -347,7 +353,7 @@ var commands = map[string]CommandFunc{
 		}
 
 		if len(args) < 2 {
-			fmt.Println("Usage: kitkat tag <tag-name> <commit-id>")
+			fmt.Println("Usage: kitcat tag <tag-name> <commit-id>")
 			os.Exit(2)
 		}
 
@@ -367,7 +373,7 @@ var commands = map[string]CommandFunc{
 				}
 				os.Exit(0)
 			}
-			fmt.Println("Usage: kitkat config --global <key> [<value>]")
+			fmt.Println("Usage: kitcat config --global <key> [<value>]")
 			os.Exit(2)
 		}
 		key := args[1]
@@ -389,13 +395,13 @@ var commands = map[string]CommandFunc{
 				os.Exit(0)
 			}
 		} else {
-			fmt.Println("Usage: kitkat config --global <key> [<value>]")
+			fmt.Println("Usage: kitcat config --global <key> [<value>]")
 			os.Exit(2)
 		}
 	},
 	"show-object": func(args []string) {
 		if len(args) != 1 {
-			fmt.Println("Usage: kitkat show-object <hash>")
+			fmt.Println("Usage: kitcat show-object <hash>")
 			os.Exit(2)
 			return
 		}
@@ -407,7 +413,7 @@ var commands = map[string]CommandFunc{
 	},
 	"branch": func(args []string) {
 		if len(args) == 0 {
-			fmt.Println("Usage: kitkat branch [-l | -r <branch-name> | -d <branch-name>]")
+			fmt.Println("Usage: kitcat branch [-l | -r <branch-name> | -d <branch-name>]")
 			os.Exit(2)
 		}
 		switch args[0] {
@@ -419,7 +425,7 @@ var commands = map[string]CommandFunc{
 			os.Exit(0)
 		case "-r":
 			if len(args) < 2 {
-				fmt.Fprintln(os.Stderr, "Usage: kitkat branch -r <branch-name>")
+				fmt.Fprintln(os.Stderr, "Usage: kitcat branch -r <branch-name>")
 				os.Exit(2)
 			}
 
@@ -431,7 +437,7 @@ var commands = map[string]CommandFunc{
 			os.Exit(0)
 		case "-d", "--delete":
 			if len(args) < 2 {
-				fmt.Fprintln(os.Stderr, "Usage: kitkat branch -d <branch-name>")
+				fmt.Fprintln(os.Stderr, "Usage: kitcat branch -d <branch-name>")
 				os.Exit(2)
 			}
 
@@ -469,7 +475,7 @@ var commands = map[string]CommandFunc{
 		}
 
 		if len(paths) != 2 {
-			fmt.Println("Usage: kitkat mv [-f|--force] <old_path> <new_path>")
+			fmt.Println("Usage: kitcat mv [-f|--force] <old_path> <new_path>")
 			os.Exit(2)
 		}
 
@@ -486,7 +492,7 @@ var commands = map[string]CommandFunc{
 func printCommitResult(newCommit models.Commit, summary string) {
 	headState, err := core.GetHeadState()
 	if err != nil {
-		headData, _ := os.ReadFile(".kitkat/HEAD")
+		headData, _ := os.ReadFile(".kitcat/HEAD")
 		ref := strings.TrimSpace(string(headData))
 		headState = strings.TrimPrefix(ref, "ref: refs/heads/")
 	}
@@ -494,7 +500,8 @@ func printCommitResult(newCommit models.Commit, summary string) {
 }
 
 func main() {
-	if len(os.Args) >= 4 && os.Args[1] == "branch" && (os.Args[2] == "-m" || os.Args[2] == "--move") {
+	if len(os.Args) >= 4 && os.Args[1] == "branch" &&
+		(os.Args[2] == "-m" || os.Args[2] == "--move") {
 		newName := os.Args[3]
 		err := core.RenameCurrentBranch(newName)
 		if err != nil {
@@ -505,7 +512,7 @@ func main() {
 		os.Exit(0)
 	}
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: kitkat <command> [args]")
+		fmt.Println("Usage: kitcat <command> [args]")
 		os.Exit(2)
 	}
 	cmd, args := os.Args[1], os.Args[2:]

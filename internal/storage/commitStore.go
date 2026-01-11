@@ -13,11 +13,11 @@ import (
 
 var ErrNoCommits = errors.New("no commits yet")
 
-const commitsPath = ".kitkat/commits.log"
+const commitsPath = ".kitcat/commits.log"
 
 // Appends commit as NDJSON
 func AppendCommit(commit models.Commit) error {
-	if err := os.MkdirAll(".kitkat", 0755); err != nil {
+	if err := os.MkdirAll(".kitcat", 0o755); err != nil {
 		return err
 	}
 
@@ -28,7 +28,7 @@ func AppendCommit(commit models.Commit) error {
 	}
 	defer unlock(lockFile)
 
-	f, err := os.OpenFile(commitsPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(commitsPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,11 @@ func FindCommit(hash string) (models.Commit, error) {
 
 	// If we found multiple matches, it's ambiguous
 	if len(matches) > 1 {
-		return models.Commit{}, fmt.Errorf("ambiguous short hash %s (matches %d commits)", hash, len(matches))
+		return models.Commit{}, fmt.Errorf(
+			"ambiguous short hash %s (matches %d commits)",
+			hash,
+			len(matches),
+		)
 	}
 
 	return models.Commit{}, fmt.Errorf("commit with hash %s not found", hash)

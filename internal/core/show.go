@@ -6,7 +6,7 @@ import (
 	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
-// Displays the contents of a kitkat object
+// Displays the contents of a kitcat object
 func ShowObject(hash string) error {
 	data, err := storage.ReadObject(hash)
 	if err != nil {

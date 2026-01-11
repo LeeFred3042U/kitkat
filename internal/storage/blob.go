@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	objectsDir = ".kitkat/objects"
+	objectsDir = ".kitcat/objects"
 )
 
 func HashAndStoreFile(path string) (string, error) {
@@ -27,7 +27,7 @@ func HashAndStoreFile(path string) (string, error) {
 
 	objPath := filepath.Join(objectsDir, hash)
 	// ensure objects dir exists
-	if err := os.MkdirAll(objectsDir, 0755); err != nil {
+	if err := os.MkdirAll(objectsDir, 0o755); err != nil {
 		return "", err
 	}
 
@@ -53,7 +53,6 @@ func HashAndStoreFile(path string) (string, error) {
 		}
 	}
 	return hash, nil
-
 }
 
 // Reads an object from the objects directory
