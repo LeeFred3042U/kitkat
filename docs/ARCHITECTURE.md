@@ -35,3 +35,12 @@ The process is split into two phases:
 Logic for listing and creating branches.
 
 ![Branch Flow](architecture/branch/branch.png)
+
+## Merge — Fast-forward
+
+The following diagram illustrates kitkat's fast-forward merge behavior. It shows the command entry point, the dirty working-directory check, ancestry validation (fast-forward eligibility), and the fast-forward path where the branch pointer is updated and the workspace is synchronized.
+
+![Fast-forward merge](architecture/merge/merge.png)
+
+PlantUML source: docs/architecture/merge/merge.puml  
+See internal/core/merge.go for implementation details.
