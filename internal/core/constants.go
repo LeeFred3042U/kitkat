@@ -17,4 +17,6 @@ const (
 	HeadPath = ".kitcat/HEAD"
 	// CommitsPath is the full path to the commit log file.
 	CommitsPath = ".kitcat/commits.log"
+	// StashPath is the full path to the stash reference file.
+	StashPath = ".kitcat/refs/stash"
 )

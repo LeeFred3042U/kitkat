@@ -117,6 +117,12 @@ func IsWorkDirDirty() (bool, error) {
 		}
 	}
 
+	// Load ignore patterns
+	ignorePatterns, err := LoadIgnorePatterns()
+	if err != nil {
+		return false, err
+	}
+
 	// Check for unstaged changes (Working Directory vs. Index)
 	err = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -132,8 +138,12 @@ func IsWorkDirDirty() (bool, error) {
 
 		indexHash, isTracked := index[cleanPath]
 
-		// If the file is not in the index, it's untracked (dirty)
+		// If the file is not in the index, check if it should be ignored
 		if !isTracked {
+			// Check if file should be ignored
+			if ShouldIgnore(cleanPath, ignorePatterns, index) {
+				return nil // Skip ignored files
+			}
 			return fmt.Errorf("untracked") // Use error to signal dirty state
 		}
 
@@ -314,12 +324,7 @@ func SafeWrite(filename string, data []byte, perm os.FileMode) error {
 		return err
 	}
 
-	// Sync Directory
-	d, err := os.Open(dirPath)
-	if err != nil {
-		return err
-	}
-	defer d.Close()
-
-	return d.Sync()
+	// Sync Directory - only on Unix-like systems
+	// On Windows, syncing a directory causes "Access is denied" error
+	return syncDir(dirPath)
 }
