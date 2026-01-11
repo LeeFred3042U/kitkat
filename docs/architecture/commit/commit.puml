@@ -1,5 +1,5 @@
 @startuml commit
-title Kitkat Commit Activity Diagram\n(internal/core/commit.go)
+title KitCat Commit Activity Diagram\n(internal/core/commit.go)
 skinparam style strictuml
 skinparam monochrome true
 skinparam shadowing false
@@ -8,7 +8,7 @@ skinparam activityFontSize 10
 skinparam noteFontSize 9
 
 start
-:User runs `kitkat commit <msg>`:;
+:User runs `kitcat commit <msg>`:;
 
 :Load config\n(author.name/email):;
 

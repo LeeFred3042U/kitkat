@@ -12,7 +12,7 @@ assignees: ""
 
 Steps to reproduce the behavior:
 
-1. Run command `kitkat ...`
+1. Run command `kitcat ...`
 2. Perform action ...
 3. See error
 

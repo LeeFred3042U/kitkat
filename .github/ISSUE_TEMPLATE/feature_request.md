@@ -21,8 +21,8 @@ assignees: ""
 
 ### Acceptance Criteria
 
-- [ ] Command `kitkat ...` works as expected.
-- [ ] `kitkat log` / `status` shows correct output.
+- [ ] Command `kitcat ...` works as expected.
+- [ ] `kitcat log` / `status` shows correct output.
 - [ ] Edge cases (like missing files) are handled.
 
 ### Track Selection
