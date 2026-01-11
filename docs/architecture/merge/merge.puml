@@ -1,6 +1,6 @@
 @startuml
 start
-:User runs kitkat merge <branch>;
+:User runs kitcat merge <branch>;
 if (Is Working Directory Clean?) then (No)
   :Error: "Changes would be overwritten";
   stop

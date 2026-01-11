@@ -15,7 +15,7 @@ Get `kitcat` up and running on your local machine:
 
 ```bash
 # Clone and build
-git clone [https://github.com/LeeFred3042U/kitcat.git](https://github.com/LeeFred3042U/kitcat.git)
+git clone https://github.com/LeeFred3042U/kitcat.git
 cd kitcat
 go build -o kitcat ./cmd/main.go
 ```
@@ -113,6 +113,7 @@ Please read our **[CONTRIBUTING.md](./CONTRIBUTING.md)** for developer setup, co
 ## Reference Material
 
 Refer to the official Git documentation, to understand how git commands work:
+
 - [Git Documentation (Official)](https://git-scm.com/docs/git)
 
 ---
