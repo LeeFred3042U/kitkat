@@ -112,10 +112,9 @@ Please read our **[CONTRIBUTING.md](./CONTRIBUTING.md)** for developer setup, co
 
 ## Reference Material
 
-To understand how kitkat maps to the original Git design philosophy, refer to the "OG" technical documentation:
+To understand how kitcat maps to the original Git design philosophy, refer to the official Git documentation:
 
-- **[Git Technical Documentation](https://github.com/git/git/blob/master/Documentation/technical/index.txt)**
-- **[Git: The Information Manager from Hell](https://github.com/git/git/blob/master/Documentation/RelNotes/0.99.txt)**
+- [Git Documentation (Official)](https://git-scm.com/docs/git)
 
 ---
 
