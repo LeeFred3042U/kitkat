@@ -12,16 +12,7 @@ import (
 )
 
 /*
-Debug helper (enabled when KITCAT_DEBUG=1)
-*/
-func debugf(format string, args ...any) {
-	if os.Getenv("KITCAT_DEBUG") == "1" {
-		fmt.Printf("[DEBUG grep] "+format+"\n", args...)
-	}
-}
-
-/*
-Binary detection (NUL byte heuristic – same idea as git)
+Binary detection (NUL byte heuristic – similar to git)
 */
 func isBinary(data []byte) bool {
 	return bytes.Contains(data, []byte{0})
@@ -72,8 +63,6 @@ func utf16ToRunes(u16 []uint16) []rune {
 kitcat grep implementation
 */
 func Grep(args []string) error {
-	debugf("entered Grep with args=%v", args)
-
 	if len(args) == 0 {
 		return fmt.Errorf("usage: kitcat grep [--line-number] <pattern>")
 	}
@@ -96,50 +85,40 @@ func Grep(args []string) error {
 	if err != nil {
 		return err
 	}
-	debugf("compiled pattern=%q", pattern)
 
-	// Load KitCat index (NOT git)
+	// Load KitCat index
 	entries, err := LoadIndex()
 	if err != nil {
 		return err
 	}
-	debugf("index loaded, %d entries", len(entries))
 
-	// Deterministic order
+	// Deterministic output order
 	sort.Slice(entries, func(i, j int) bool {
 		return entries[i].Path < entries[j].Path
 	})
 
 	for _, entry := range entries {
-		debugf("scanning file=%s", entry.Path)
-
 		data, err := os.ReadFile(entry.Path)
 		if err != nil {
-			debugf("failed to read file=%s: %v", entry.Path, err)
 			continue
 		}
 
 		if isBinary(data) {
-			debugf("skipping binary file=%s", entry.Path)
 			continue
 		}
 
 		text, ok := decodeText(data)
 		if !ok {
-			debugf("skipping unsupported encoding file=%s", entry.Path)
 			continue
 		}
 
 		scanner := bufio.NewScanner(strings.NewReader(text))
 		lineNo := 1
-		matched := false
 
 		for scanner.Scan() {
 			line := scanner.Text()
-			debugf("line %d: %q", lineNo, line)
 
 			if re.MatchString(line) {
-				matched = true
 				if showLineNumber {
 					fmt.Printf("%s:%d:%s\n", entry.Path, lineNo, line)
 				} else {
@@ -148,12 +127,7 @@ func Grep(args []string) error {
 			}
 			lineNo++
 		}
-
-		if !matched {
-			debugf("no matches in file=%s", entry.Path)
-		}
 	}
 
-	debugf("grep finished successfully")
 	return nil
 }
