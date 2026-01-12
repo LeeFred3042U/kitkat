@@ -486,6 +486,29 @@ var commands = map[string]CommandFunc{
 
 		os.Exit(0)
 	},
+	"stash": func(args []string) {
+		if !core.IsRepoInitialized() {
+			fmt.Println("Error: not a kitcat repository (or any of the parent directories): .kitcat")
+			os.Exit(1)
+		}
+
+		// Handle subcommands
+		if len(args) > 0 && args[0] == "pop" {
+			if err := core.StashPop(); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		}
+
+		// Default: stash save
+		if err := core.Stash(); err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
+		fmt.Println("Saved working directory and index state")
+		os.Exit(0)
+	},
 }
 
 // printCommitResult formats and prints the commit result with summary

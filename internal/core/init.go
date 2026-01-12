@@ -61,7 +61,7 @@ func InitRepo() error {
 	}
 
 	// Create default .kitignore to prevent self-tracking
-	ignoreContent := []byte(".DS_Store\nkitcat\nkitcat.exe\n")
+	ignoreContent := []byte(".DS_Store\nkitcat\nkitcat.exe\n*.lock\n.kitignore\n")
 	if err := os.WriteFile(".kitignore", ignoreContent, 0o644); err != nil {
 		return err
 	}
