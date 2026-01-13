@@ -8,6 +8,5 @@ linters-settings:
   revive:
     rules:
       - name: exported
-        arguments:
-          - disableStuttering: true
+        argument: "The comment should start with the name of the exported declaration"
       - name: comment-spacings # Enforces space after //

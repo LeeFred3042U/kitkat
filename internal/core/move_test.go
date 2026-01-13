@@ -13,7 +13,11 @@ func TestMoveFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(cwd)
+	defer func() {
+		if err := os.Chdir(cwd); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	// Create temp directory
 	tmpDir := t.TempDir()
@@ -73,7 +77,11 @@ func TestMoveFile_DestinationExists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(cwd)
+	defer func() {
+		if err := os.Chdir(cwd); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	// Create temp directory
 	tmpDir := t.TempDir()
@@ -140,11 +148,17 @@ func TestMoveFile_SamePath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Chdir(cwd)
+	defer func() {
+		if err := os.Chdir(cwd); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	// Create a temp directory
 	tmpDir := t.TempDir()
-	os.Chdir(tmpDir)
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
+	}
 
 	// Initialize kitcat repository
 	if err := InitRepo(); err != nil {

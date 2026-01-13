@@ -43,7 +43,9 @@ func setupTestRepo(t *testing.T) (string, func()) {
 
 	// Cleanup function
 	cleanup := func() {
-		os.Chdir(cwd)
+		if err := os.Chdir(cwd); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	return tmpDir, cleanup
