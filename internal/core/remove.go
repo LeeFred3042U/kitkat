@@ -4,37 +4,36 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 func RemoveFile(filename string) error {
 	filename = filepath.Clean(filename)
-	index, err := LoadIndex()
+	index, err := storage.LoadIndex()
 	if err != nil {
 		return fmt.Errorf("failed to load index: %w", err)
 	}
 
-	found := false
-	newIndex := []IndexEntry{}
-	for _, entry := range index {
-		if filepath.Clean(entry.Path) == filename {
-			found = true
-			continue
-		}
-		newIndex = append(newIndex, entry)
-	}
-
-	if !found {
+	// First, verify the file exists in the index
+	if _, ok := index[filename]; !ok {
 		return fmt.Errorf("pathspec '%s' did not match any files", filename)
 	}
 
-	if err := SaveIndex(newIndex); err != nil {
-		return fmt.Errorf("failed to save index: %w", err)
-	}
-
+	// Step 1: Delete file from disk FIRST
 	if err := os.Remove(filename); err != nil {
+		// If file doesn't exist, that's OK (already deleted)
 		if !os.IsNotExist(err) {
+			// Permission error or other failure - return immediately
 			return err
 		}
+	}
+
+	// Step 2: Only update index if deletion succeeded
+	delete(index, filename)
+
+	if err := storage.WriteIndex(index); err != nil {
+		return fmt.Errorf("failed to save index: %w", err)
 	}
 
 	return nil
