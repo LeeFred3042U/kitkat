@@ -53,12 +53,12 @@ kitcat implements a functional subset of Git's "Plumbing" and "Porcelain" comman
 > [!IMPORTANT]
 > **A Note on Flags:** kitcat implements a **strict subset of Git flags**. For example, we support `commit -m` but **not** flags like `--author`, `--date`, or others. This restricted flag support applies to all commands across the project.
 
-| Feature            | Supported                 | Not Supported                           |
-| :----------------- | :------------------------ | :-------------------------------------- |
-| **Local Workflow** | Init, Add, Commit, Status | Staging specific hunks, Interactive add |
-| **History**        | Log, Branching, Checkout  | Rebase, Cherry-pick, Reflog             |
-| **Merging**        | Fast-Forward (FF) Only    | Merge conflict resolution, 3-way merges |
-| **Collaboration**  | Local directory only      | Remotes (Push, Pull, Fetch, Remote)     |
+| Feature            | Supported                        | Not Supported                           |
+| :----------------- | :------------------------------- | :-------------------------------------- |
+| **Local Workflow** | Init, Add, Commit, Status        | Staging specific hunks, Interactive add |
+| **History**        | Log, Branching, Checkout, Rebase | Cherry-pick, Reflog                     |
+| **Merging**        | Fast-Forward (FF) Only           | Merge conflict resolution, 3-way merges |
+| **Collaboration**  | Local directory only             | Remotes (Push, Pull, Fetch, Remote)     |
 
 ---
 
@@ -76,6 +76,10 @@ kitcat implements a functional subset of Git's "Plumbing" and "Porcelain" comman
 | `checkout` | Switch branches or restore files.    | `./kitcat checkout main`       |
 | `merge`    | Join histories (**FF-only**).        | `./kitcat merge feature`       |
 | `clean`    | Remove untracked files.              | `./kitcat clean -f`            |
+| `stash`    | Stash local changes.                 | `./kitcat stash`               |
+| `rebase`   | Reapply commits on top of base.      | `./kitcat rebase -i`           |
+| `grep`     | Search file contents.                | `./kitcat grep "text"`         |
+| `shortlog` | Summarize commit history.            | `./kitcat shortlog`            |
 | `config`   | Set user name and email.             | `./kitcat config --global ...` |
 
 ---
