@@ -188,7 +188,9 @@ func RebaseContinue() error {
 			head, _ := readHead()
 			newMsg := promptForMessage(msg)
 			if newMsg != msg {
-				amendCommitMessage(head, newMsg)
+				if err := amendCommitMessage(head, newMsg); err != nil {
+					return err
+				}
 			}
 		}
 
@@ -472,7 +474,7 @@ func generateTodo(hashes []string) string {
 // parseTodo parses the todo content and returns a list of steps
 // ignores comments and empty lines
 func parseTodo(content string) []string {
-	var steps []string
+	steps := make([]string, 0)
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -516,7 +518,10 @@ func getCommitsBetween(start, end string) ([]string, error) {
 // and returns the edited message
 func promptForMessage(defaultMsg string) string {
 	tmp := ".kitcat/COMMIT_EDITMSG"
-	os.WriteFile(tmp, []byte(defaultMsg), 0o644)
+	if err := os.WriteFile(tmp, []byte(defaultMsg), 0o644); err != nil {
+		fmt.Printf("Warning: %v. Using default message.\n", err)
+		return defaultMsg
+	}
 
 	editor, editorArgs, err := getEditor()
 	if err != nil {
@@ -529,7 +534,10 @@ func promptForMessage(defaultMsg string) string {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Run()
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Warning: %v. Using default message.\n", err)
+		return defaultMsg
+	}
 
 	out, _ := os.ReadFile(tmp)
 	return strings.TrimSpace(string(out))
