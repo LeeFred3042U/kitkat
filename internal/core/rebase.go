@@ -476,7 +476,7 @@ func generateTodo(hashes []string) string {
 // parseTodo parses the todo content and returns a list of steps
 // ignores comments and empty lines
 func parseTodo(content string) []string {
-	var steps []string
+	steps := make([]string, 0)
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
