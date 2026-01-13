@@ -43,7 +43,7 @@ func setupTestRepo(t *testing.T) (string, func()) {
 
 	// Cleanup function
 	cleanup := func() {
-		os.Chdir(cwd)
+		_ = os.Chdir(cwd)
 	}
 
 	return tmpDir, cleanup

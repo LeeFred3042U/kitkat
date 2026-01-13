@@ -29,12 +29,24 @@ func SaveRebaseState(state RebaseState) error {
 	}
 	base := filepath.Join(RepoDir, "rebase-merge")
 
-	os.WriteFile(filepath.Join(base, "head-name"), []byte(state.HeadName), 0644)
-	os.WriteFile(filepath.Join(base, "onto"), []byte(state.Onto), 0644)
-	os.WriteFile(filepath.Join(base, "orig-head"), []byte(state.OrigHead), 0644)
-	os.WriteFile(filepath.Join(base, "git-rebase-todo"), []byte(strings.Join(state.TodoSteps, "\n")), 0644)
-	os.WriteFile(filepath.Join(base, "msgnum"), []byte(fmt.Sprintf("%d", state.CurrentStep+1)), 0644)
-	os.WriteFile(filepath.Join(base, "message"), []byte(state.Message), 0644) // Optional
+	if err := os.WriteFile(filepath.Join(base, "head-name"), []byte(state.HeadName), 0644); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(base, "onto"), []byte(state.Onto), 0644); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(base, "orig-head"), []byte(state.OrigHead), 0644); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(base, "git-rebase-todo"), []byte(strings.Join(state.TodoSteps, "\n")), 0644); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(base, "msgnum"), []byte(fmt.Sprintf("%d", state.CurrentStep+1)), 0644); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(base, "message"), []byte(state.Message), 0644); err != nil {
+		return err
+	}
 
 	return nil
 }
