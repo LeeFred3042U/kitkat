@@ -46,7 +46,30 @@ func Stash() error {
 		branchName = "detached HEAD"
 	}
 
-	// Step 5: Create tree from current index
+	// Step 5: Update index with current working directory state for tracked files
+	// This ensures unstaged changes are included in the stash tree
+	index, err := storage.LoadIndex()
+	if err != nil {
+		return fmt.Errorf("failed to load index: %w", err)
+	}
+
+	for path := range index {
+		// If file exists in working directory, hash it and update index
+		if _, err := os.Stat(path); err == nil {
+			hash, err := storage.HashAndStoreFile(path)
+			if err != nil {
+				return fmt.Errorf("failed to hash file %s: %w", path, err)
+			}
+			index[path] = hash
+		}
+	}
+
+	// Write updated index to disk so CreateTree uses the current state
+	if err := storage.WriteIndex(index); err != nil {
+		return fmt.Errorf("failed to write updated index: %w", err)
+	}
+
+	// Step 6: Create tree from current index
 	treeHash, err := storage.CreateTree()
 	if err != nil {
 		return fmt.Errorf("failed to create tree from index: %w", err)
