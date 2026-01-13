@@ -110,3 +110,115 @@ func Test_CheckoutFile_PreservesDirtyFile(t *testing.T) {
 		t.Errorf("File content was overwritten! Expected 'v2', got '%s'", string(currentContent))
 	}
 }
+
+// Test_CheckoutFile_UpdatesIndex verifies that CheckoutFile correctly updates the index/staging area
+// after restoring a file. This prevents "phantom" changes from appearing in `kitkat status`.
+func Test_CheckoutFile_UpdatesIndex(t *testing.T) {
+	// 1. Setup temporary repository
+	repoDir := t.TempDir()
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get cwd: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(cwd)
+	}()
+
+	if err := os.Chdir(repoDir); err != nil {
+		t.Fatalf("failed to chdir to temp repo: %v", err)
+	}
+
+	// Initialize .kitkat structure
+	dirs := []string{
+		".kitcat",
+		".kitcat/objects",
+		".kitcat/refs/heads",
+	}
+	for _, d := range dirs {
+		if err := os.MkdirAll(d, 0755); err != nil {
+			t.Fatalf("failed to create dir %s: %v", d, err)
+		}
+	}
+
+	// 2. Create and commit a file
+	filePath := "file.txt"
+	content := []byte("original content")
+	if err := os.WriteFile(filePath, content, 0644); err != nil {
+		t.Fatalf("failed to write file: %v", err)
+	}
+
+	// Store blob
+	blobHash, err := storage.HashAndStoreFile(filePath)
+	if err != nil {
+		t.Fatalf("failed to store blob: %v", err)
+	}
+
+	// Create initial index
+	index := map[string]string{
+		filePath: blobHash,
+	}
+	if err := storage.WriteIndex(index); err != nil {
+		t.Fatalf("failed to write index: %v", err)
+	}
+
+	// Create tree and commit
+	treeHash, err := storage.CreateTree()
+	if err != nil {
+		t.Fatalf("failed to create tree: %v", err)
+	}
+
+	commit := models.Commit{
+		TreeHash:  treeHash,
+		Message:   "Initial commit",
+		Timestamp: time.Now(),
+		ID:        "test-commit-id",
+	}
+	if err := storage.AppendCommit(commit); err != nil {
+		t.Fatalf("failed to append commit: %v", err)
+	}
+	// Update HEAD
+	if err := os.WriteFile(".kitcat/HEAD", []byte(commit.ID), 0644); err != nil {
+		t.Fatalf("failed to update HEAD: %v", err)
+	}
+
+	// 3. Delete the file from workspace (simulate accidental deletion or state change)
+	if err := os.Remove(filePath); err != nil {
+		t.Fatalf("failed to remove file: %v", err)
+	}
+
+	// 4. Modify Index to simulate "missing" entry or inconsistent state
+	// We want to ensure CheckoutFile RESTORES the index entry.
+	// So let's delete it from the index explicitly.
+	delete(index, filePath)
+	if err := storage.WriteIndex(index); err != nil {
+		t.Fatalf("failed to write corrupt index: %v", err)
+	}
+
+	// 5. Checkout the file
+	if err := CheckoutFile(filePath); err != nil {
+		t.Fatalf("CheckoutFile failed: %v", err)
+	}
+
+	// 6. Verify File Content
+	restoredContent, err := os.ReadFile(filePath)
+	if err != nil {
+		t.Fatalf("failed to read restored file: %v", err)
+	}
+	if string(restoredContent) != string(content) {
+		t.Errorf("Content mismatch. Want %s, got %s", content, restoredContent)
+	}
+
+	// 7. Verify Index is Updated
+	// Re-load the index
+	loadedIndex, err := storage.LoadIndex()
+	if err != nil {
+		t.Fatalf("failed to load index: %v", err)
+	}
+
+	storedHash, ok := loadedIndex[filePath]
+	if !ok {
+		t.Error("CheckoutFile did NOT update the index: file entry is missing")
+	} else if storedHash != blobHash {
+		t.Errorf("Index has wrong hash. Want %s, got %s", blobHash, storedHash)
+	}
+}

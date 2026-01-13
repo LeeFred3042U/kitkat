@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/LeeFred3042U/kitcat/internal/storage"
@@ -30,6 +31,8 @@ func Clean(dryRun bool, includeIgnored bool) error {
 		return err
 	}
 
+	var visitedDirs []string
+
 	err = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -45,8 +48,14 @@ func Clean(dryRun bool, includeIgnored bool) error {
 			return nil
 		}
 
-		// skip directories and the root marker "."
-		if info.IsDir() || clean == "." {
+		// Track directories (except root)
+		if info.IsDir() && clean != "." {
+			visitedDirs = append(visitedDirs, clean)
+			return nil
+		}
+
+		// skip root marker "." and directories (already handled above)
+		if clean == "." || info.IsDir() {
 			return nil
 		}
 
@@ -73,5 +82,26 @@ func Clean(dryRun bool, includeIgnored bool) error {
 		}
 		return nil
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Post-process: remove empty directories (deepest first)
+	if !dryRun {
+		sort.Sort(sort.Reverse(sort.StringSlice(visitedDirs)))
+		for _, dir := range visitedDirs {
+			if err := os.Remove(dir); err != nil {
+				// Directory still contains tracked files or files we chose not to remove
+				continue // ← Fix: explicit continue instead of empty block
+			}
+		}
+	} else {
+		// In dry-run mode, show which directories would be removed
+		sort.Sort(sort.Reverse(sort.StringSlice(visitedDirs)))
+		for _, dir := range visitedDirs {
+			fmt.Printf("Would remove directory %s\n", dir)
+		}
+	}
+
+	return nil
 }
