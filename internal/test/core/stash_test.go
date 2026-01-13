@@ -43,7 +43,7 @@ func setupTestRepo(t *testing.T) (string, func()) {
 
 	// Cleanup function
 	cleanup := func() {
-		os.Chdir(cwd)
+		_ = os.Chdir(cwd)
 	}
 
 	return tmpDir, cleanup
@@ -532,5 +532,62 @@ func TestStash_NoCommits(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "no commits yet") {
 		t.Errorf("Expected 'no commits yet' error, got: %v", err)
+	}
+}
+
+// TestStash_UnstagedChanges integration test for stashing unstaged changes
+func TestStash_UnstagedChanges(t *testing.T) {
+	tmpDir, cleanup := setupTestRepo(t)
+	defer cleanup()
+
+	// 1. Setup: Initialize and commit file.txt v1
+	testFile := "file.txt"
+	if err := os.WriteFile(testFile, []byte("v1"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(testFile); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := core.Commit("initial commit"); err != nil {
+		t.Fatal(err)
+	}
+
+	// 2. Modify: Change content to v2 (unstaged)
+	if err := os.WriteFile(testFile, []byte("v2"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// 3. Push: Run stash
+	if err := core.Stash(); err != nil {
+		t.Fatalf("Stash failed: %v", err)
+	}
+
+	// 4. Assert: Working directory is clean (content reverts to v1)
+	content, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(content) != "v1" {
+		t.Errorf("File should be reset to v1 after stash, got: %s", string(content))
+	}
+
+	// 5. Pop: Run stash pop
+	if err := core.StashPop(); err != nil {
+		t.Fatalf("StashPop failed: %v", err)
+	}
+
+	// 6. Assert: Working directory contains v2
+	content, err = os.ReadFile(testFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(content) != "v2" {
+		t.Errorf("File should be restored to v2 after pop, got: %s", string(content))
+	}
+
+	// 7. Verification: Ensure stash reference is gone
+	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
+	if _, err := os.Stat(stashRefPath); !os.IsNotExist(err) {
+		t.Error("Stash reference should be deleted after pop")
 	}
 }

@@ -62,7 +62,17 @@ func CheckoutFile(filePath string) error {
 		return err
 	}
 
-	return os.WriteFile(filePath, content, 0o644)
+	if err := os.WriteFile(filePath, content, 0o644); err != nil {
+		return err
+	}
+
+	// Update the index to reflect the checked-out version
+	index, err := storage.LoadIndex()
+	if err != nil {
+		return err
+	}
+	index[filePath] = blobHash
+	return storage.WriteIndex(index)
 }
 
 // Switch the current HEAD to the named branch and updates the working directory.
