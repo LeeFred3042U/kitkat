@@ -27,14 +27,14 @@ func Stash() error {
 func StashPush(message string) error {
 	// Step 1: Validate repository is initialized
 	if !IsRepoInitialized() {
-		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
+		return fmt.Errorf(
+			"Fatal: current directory or any of the parent directories is not a kitcat repository.",
+		)
 	}
 
 	// Step 2: Get current HEAD commit for parent reference and message
-	// This must be done before checking dirty state because IsWorkDirDirty needs commits to exist
 	headCommit, err := GetHeadCommit()
 	if err != nil {
-		// Check if the error is because there are no commits
 		if err == storage.ErrNoCommits || strings.Contains(err.Error(), "not found") {
 			return fmt.Errorf("cannot stash: no commits yet")
 		}
@@ -57,14 +57,12 @@ func StashPush(message string) error {
 	}
 
 	// Step 5: Update index with current working directory state for tracked files
-	// This ensures unstaged changes are included in the stash tree
 	index, err := storage.LoadIndex()
 	if err != nil {
 		return fmt.Errorf("failed to load index: %w", err)
 	}
 
 	for path := range index {
-		// If file exists in working directory, hash it and update index
 		if _, err := os.Stat(path); err == nil {
 			hash, err := storage.HashAndStoreFile(path)
 			if err != nil {
@@ -74,7 +72,6 @@ func StashPush(message string) error {
 		}
 	}
 
-	// Write updated index to disk so CreateTree uses the current state
 	if err := storage.WriteIndex(index); err != nil {
 		return fmt.Errorf("failed to write updated index: %w", err)
 	}
@@ -85,7 +82,7 @@ func StashPush(message string) error {
 		return fmt.Errorf("failed to create tree from index: %w", err)
 	}
 
-	// Step 6: Get author information
+	// Step 7: Get author information
 	authorName, _, _ := GetConfig("user.name")
 	if authorName == "" {
 		authorName = "Unknown"
@@ -95,8 +92,7 @@ func StashPush(message string) error {
 		authorEmail = "unknown@example.com"
 	}
 
-	// Step 7: Create WIP commit message
-	// If custom message provided, use it; otherwise use default format
+	// Step 8: Create WIP commit message
 	var wipMessage string
 	if message != "" {
 		wipMessage = fmt.Sprintf("WIP on %s: %s", branchName, message)
@@ -104,7 +100,7 @@ func StashPush(message string) error {
 		wipMessage = fmt.Sprintf("WIP on %s: %s", branchName, headCommit.Message)
 	}
 
-	// Step 8: Create the stash commit
+	// Step 9: Create the stash commit
 	stashCommit := models.Commit{
 		Parent:      headCommit.ID,
 		Message:     wipMessage,
@@ -115,23 +111,22 @@ func StashPush(message string) error {
 	}
 	stashCommit.ID = hashCommit(stashCommit)
 
-	// Step 9: Save the stash commit to commits.log
+	// Step 10: Save the stash commit to commits.log
 	if err := storage.AppendCommit(stashCommit); err != nil {
 		return fmt.Errorf("failed to save stash commit: %w", err)
 	}
 
-	// Step 10: Push the stash to the stack
+	// Step 11: Push the stash to the stack
 	if err := storage.PushStash(stashCommit.ID); err != nil {
 		return fmt.Errorf("failed to push stash: %w", err)
 	}
 
-	// Step 11: Perform hard reset to HEAD to clean the workspace
-	if err := ResetHard(headCommit.ID); err != nil {
-		// Note: We don't clean up the stash on failure as it's already in the stack
-		// The user can manually pop it if needed
+	// Step 12: Perform hard reset to HEAD to clean the workspace
+	if err := Reset(headCommit.ID, ResetHard); err != nil {
 		return fmt.Errorf("failed to reset workspace after stashing: %w", err)
 	}
 
+	fmt.Printf("Saved working directory and index state %s\n", wipMessage)
 	return nil
 }
 
@@ -141,7 +136,9 @@ func StashPush(message string) error {
 func StashPop() error {
 	// Step 1: Validate repository is initialized
 	if !IsRepoInitialized() {
-		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
+		return fmt.Errorf(
+			"Fatal: current directory or any of the parent directories is not a kitcat repository.",
+		)
 	}
 
 	// Step 2: Pop the most recent stash from the stack
@@ -165,7 +162,9 @@ func StashPop() error {
 		return fmt.Errorf("failed to check working directory status: %w", err)
 	}
 	if isDirty {
-		return fmt.Errorf("error: your local changes would be overwritten by stash pop\nPlease commit your changes or stash them before you pop")
+		return fmt.Errorf(
+			"Error: your local changes would be overwritten by stash pop\nPlease commit your changes or stash them before you pop",
+		)
 	}
 
 	// Step 5: Apply the stash commit to the working directory
@@ -184,7 +183,7 @@ func StashPop() error {
 func getCurrentBranchName() string {
 	headState, err := GetHeadState()
 	if err != nil {
-		return "unknown"
+		return "Error: unable to fetch current branch"
 	}
 	return headState
 }
