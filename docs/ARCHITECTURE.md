@@ -6,7 +6,8 @@ Logic for creating a new repository structure (`.kitcat` folders, HEAD, etc.).
 
 ## 2. Staging Flow (Add)
 
-Logic for moving files from the Working Directory to the Index (Staging Area).
+The following activity diagram explains how the `kitcat add` command stages files
+into the index, including both individual paths and the `--all` flag.
 
 ![Add Flow](architecture/add/add.png)
 
