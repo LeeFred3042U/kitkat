@@ -40,6 +40,14 @@ var commands = map[string]CommandFunc{
 		}
 		os.Exit(exitCode)
 	},
+	"grep": func(args []string) {
+		if err := core.Grep(args); err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	},
+
 	"rm": func(args []string) {
 		if len(args) < 1 {
 			fmt.Println("Usage: kitcat rm <file>")
