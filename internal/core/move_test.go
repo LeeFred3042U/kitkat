@@ -1,10 +1,10 @@
 package core
 
 import (
-	"encoding/json"
 	"os"
-	"path/filepath"
 	"testing"
+
+	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
 func TestMoveFile(t *testing.T) {
@@ -59,7 +59,7 @@ func TestMoveFile(t *testing.T) {
 	}
 
 	// Index should contain new file
-	idx, err := loadIndexForTest(filepath.Join(tmpDir, ".kitcat", "index"))
+	idx, err := storage.LoadIndex()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -128,7 +128,7 @@ func TestMoveFile_DestinationExists(t *testing.T) {
 	}
 
 	// Index should contain the destination file
-	idx, err := loadIndexForTest(filepath.Join(tmpDir, ".kitcat", "index"))
+	idx, err := storage.LoadIndex()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,16 +179,187 @@ func TestMoveFile_SamePath(t *testing.T) {
 	}
 }
 
-func loadIndexForTest(path string) (map[string]string, error) {
-	data, err := os.ReadFile(path)
+func TestMoveFile_LocalChanges_WithoutForce(t *testing.T) {
+	// Restores the current working directory
+	cwd, err := os.Getwd()
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
+	}
+	defer func() {
+		_ = os.Chdir(cwd)
+	}()
+
+	// Create temp directory
+	tmpDir := t.TempDir()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
 	}
 
-	var idx map[string]string
-	if err := json.Unmarshal(data, &idx); err != nil {
-		return nil, err
+	// Initialize kitcat repository
+	if err := InitRepo(); err != nil {
+		t.Fatal(err)
 	}
 
-	return idx, nil
+	oldPath := "test.txt"
+	newPath := "renamed.txt"
+
+	// Create and stage file
+	if err := os.WriteFile(oldPath, []byte("original content"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := AddFile(oldPath); err != nil {
+		t.Fatal(err)
+	}
+
+	// Modify the file after staging
+	if err := os.WriteFile(oldPath, []byte("modified content"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Attempt to move without force flag
+	err = MoveFile(oldPath, newPath, false)
+	if err == nil {
+		t.Fatalf("expected error when moving modified file without force")
+	}
+	if err.Error() != "local changes present, use -f to force" {
+		t.Fatalf("expected 'local changes present' error, got: %v", err)
+	}
+
+	// Verify file remains at oldPath
+	if _, err := os.Stat(oldPath); err != nil {
+		t.Fatalf("expected file to remain at oldPath after failed move")
+	}
+
+	// Verify newPath does not exist
+	if _, err := os.Stat(newPath); !os.IsNotExist(err) {
+		t.Fatalf("expected newPath to not exist after failed move")
+	}
+
+	// Verify index still contains oldPath
+	idx, err := storage.LoadIndex()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := idx[oldPath]; !ok {
+		t.Fatalf("expected oldPath to remain in index after failed move")
+	}
+}
+
+func TestMoveFile_LocalChanges_WithForce(t *testing.T) {
+	// Restores the current working directory
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		_ = os.Chdir(cwd)
+	}()
+
+	// Create temp directory
+	tmpDir := t.TempDir()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
+	}
+
+	// Initialize kitcat repository
+	if err := InitRepo(); err != nil {
+		t.Fatal(err)
+	}
+
+	oldPath := "test.txt"
+	newPath := "renamed.txt"
+
+	// Create and stage file
+	if err := os.WriteFile(oldPath, []byte("original content"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := AddFile(oldPath); err != nil {
+		t.Fatal(err)
+	}
+
+	// Modify the file after staging
+	if err := os.WriteFile(oldPath, []byte("modified content"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Move with force flag
+	if err := MoveFile(oldPath, newPath, true); err != nil {
+		t.Fatalf("expected no error when moving with force flag, got: %v", err)
+	}
+
+	// Verify file moved to newPath
+	if _, err := os.Stat(newPath); err != nil {
+		t.Fatalf("expected file to exist at newPath")
+	}
+
+	// Verify oldPath no longer exists
+	if _, err := os.Stat(oldPath); !os.IsNotExist(err) {
+		t.Fatalf("expected oldPath to be removed after move")
+	}
+
+	// Verify index contains newPath
+	idx, err := storage.LoadIndex()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := idx[newPath]; !ok {
+		t.Fatalf("expected newPath to be in index after move")
+	}
+	if _, ok := idx[oldPath]; ok {
+		t.Fatalf("expected oldPath to be removed from index after move")
+	}
+}
+
+func TestMoveFile_UntrackedFile(t *testing.T) {
+	// Restores the current working directory
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		_ = os.Chdir(cwd)
+	}()
+
+	// Create temp directory
+	tmpDir := t.TempDir()
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
+	}
+
+	// Initialize kitcat repository
+	if err := InitRepo(); err != nil {
+		t.Fatal(err)
+	}
+
+	oldPath := "untracked.txt"
+	newPath := "moved.txt"
+
+	// Create file but do NOT stage it
+	if err := os.WriteFile(oldPath, []byte("untracked content"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Move untracked file without force flag (should succeed)
+	if err := MoveFile(oldPath, newPath, false); err != nil {
+		t.Fatalf("expected no error when moving untracked file, got: %v", err)
+	}
+
+	// Verify file moved to newPath
+	if _, err := os.Stat(newPath); err != nil {
+		t.Fatalf("expected file to exist at newPath")
+	}
+
+	// Verify oldPath no longer exists
+	if _, err := os.Stat(oldPath); !os.IsNotExist(err) {
+		t.Fatalf("expected oldPath to be removed after move")
+	}
+
+	// Verify index contains newPath (it gets staged by MoveFile)
+	idx, err := storage.LoadIndex()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := idx[newPath]; !ok {
+		t.Fatalf("expected newPath to be staged after move")
+	}
 }
