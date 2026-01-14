@@ -304,6 +304,7 @@ var commands = map[string]CommandFunc{
 		os.Exit(0)
 	},
 	"clean": func(args []string) {
+		dryRun := false
 		force := false
 		includeIgnored := false
 
@@ -311,6 +312,9 @@ var commands = map[string]CommandFunc{
 			switch arg {
 			case "-f":
 				force = true
+			case "-fd":
+				force = true
+				dryRun = true
 			case "-x":
 				includeIgnored = true
 			}
@@ -321,7 +325,7 @@ var commands = map[string]CommandFunc{
 			os.Exit(0)
 		}
 
-		if err := core.Clean(true, includeIgnored); err != nil {
+		if err := core.Clean(dryRun, includeIgnored); err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
