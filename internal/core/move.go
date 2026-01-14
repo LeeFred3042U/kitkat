@@ -26,6 +26,26 @@ func MoveFile(oldPath, newPath string, force bool) error {
 		}
 	}
 
+	// Check for uncommitted changes unless force is true
+	if !force {
+		idx, err := storage.LoadIndex()
+		if err != nil {
+			return err
+		}
+
+		// Only check if file is tracked in the index
+		if indexHash, exists := idx[oldPath]; exists {
+			currentHash, err := storage.HashFile(oldPath)
+			if err != nil {
+				return err
+			}
+
+			if currentHash != indexHash {
+				return errors.New("local changes present, use -f to force")
+			}
+		}
+	}
+
 	// Rename file
 	if err := os.Rename(oldPath, newPath); err != nil {
 		return err
