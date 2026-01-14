@@ -222,4 +222,3 @@ func Test_CheckoutFile_UpdatesIndex(t *testing.T) {
 		t.Errorf("Index has wrong hash. Want %s, got %s", blobHash, storedHash)
 	}
 }
-
