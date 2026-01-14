@@ -194,9 +194,11 @@ var commands = map[string]CommandFunc{
 	},
 	"checkout": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitcat checkout [-b] <branch-name> | <file-path>")
+			fmt.Println("Usage: kitcat checkout [-b] <branch-name> | <file-path> | <branch> -- <file-path>")
 			os.Exit(2)
 		}
+
+		// Handle branch creation: kitcat checkout -b <branch-name>
 		if args[0] == "-b" {
 			if len(args) != 2 {
 				fmt.Println("Usage: kitcat checkout -b <branch-name>")
@@ -217,6 +219,57 @@ var commands = map[string]CommandFunc{
 			}
 			os.Exit(0)
 		}
+
+		// Support for -- separator
+		sepIdx := -1
+		for i, arg := range args {
+			if arg == "--" {
+				sepIdx = i
+				break
+			}
+		}
+
+		if sepIdx != -1 {
+			// Arguments before --
+			branchArgs := args[:sepIdx]
+			// Arguments after -- are always file paths
+			fileArgs := args[sepIdx+1:]
+			if len(fileArgs) == 0 {
+				fmt.Println("Error: No file paths provided after --")
+				os.Exit(2)
+			}
+
+			// If a branch is specified before --, switch to it
+			if len(branchArgs) == 1 {
+				branch := branchArgs[0]
+				if !core.IsBranch(branch) {
+					fmt.Printf("Error: Branch '%s' does not exist\n", branch)
+					os.Exit(1)
+				}
+				if err := core.CheckoutBranch(branch); err != nil {
+					fmt.Println("Error:", err)
+					os.Exit(1)
+				}
+			} else if len(branchArgs) > 1 {
+				fmt.Println("Error: Too many arguments before --")
+				os.Exit(2)
+			}
+
+			// Now restore each file path after --
+			for _, file := range fileArgs {
+				if _, err := os.Stat(file); err != nil {
+					fmt.Printf("Error: file '%s' does not exist on disk\n", file)
+					os.Exit(1)
+				}
+				if err := core.CheckoutFile(file); err != nil {
+					fmt.Println("Error:", err)
+					os.Exit(1)
+				}
+			}
+			os.Exit(0)
+		}
+
+		// No -- separator: fallback to old logic
 		name := args[0]
 		if core.IsBranch(name) {
 			if err := core.CheckoutBranch(name); err != nil {
@@ -224,6 +277,10 @@ var commands = map[string]CommandFunc{
 				os.Exit(1)
 			}
 		} else {
+			if _, err := os.Stat(name); err != nil {
+				fmt.Printf("Error: file '%s' does not exist on disk\n", name)
+				os.Exit(1)
+			}
 			if err := core.CheckoutFile(name); err != nil {
 				fmt.Println("Error:", err)
 				os.Exit(1)
