@@ -1,33 +1,66 @@
-@startuml add
-title Command: kitcat add
-skinparam style strictuml
-start
-:User runs `kitcat add ...`;
-:Parse Arguments (File Path or --all);
+@startuml
+title kitcat add – Activity Diagram
 
-if (Is --all?) then (yes)
-  :Walk Working Directory;
-  :Identify New, Modified, Deleted Files;
+start
+
+:User runs `kitcat add [paths | --all]`;
+
+if ("--all flag set?") then (yes)
+
+  :Load index;
+  :Load ignore patterns;
+  :Initialize filesInWorkDir map;
+
+  :Walk working directory recursively;
+
+  if ("Unsafe path?") then (yes)
+    :Skip path;
+  endif
+
+  if ("Inside .kitcat?") then (yes)
+    :Skip directory;
+  endif
+
+  if ("Is directory?") then (yes)
+    :Continue walk;
+  endif
+
+  if ("Ignored file?") then (yes)
+    :Skip file;
+  endif
+
+  :Hash file contents;
+  :Store object;
+  :Update index entry;
+  :Mark file as seen;
+
+  :Detect deleted files;
+  :Remove deleted entries from index;
+
 else (no)
-  :Check specific file path;
-  :Verify file is safe & accessible;
+
+  :For each provided path;
+  :Clean path;
+
+  if ("Safe path?") then (no)
+    :Abort with error;
+  endif
+
+  :Ensure repository exists;
+  :Hash file contents;
+  :Store object;
+
+  :Load index;
+
+  if ("Already tracked with same hash?") then (yes)
+    :Skip update;
+  else (no)
+    :Update index entry;
+  endif
+
 endif
 
-partition "Object Storage" {
-  :Read File Content;
-  :Calculate SHA-1 Hash;
-  :Store Blob in .kitcat/objects/<hash>;
-}
-
-partition "Index Update" {
-  :Load Current Index (.kitcat/index);
-  if (Hash in Index == New Hash?) then (yes)
-    :No change needed;
-  else (no)
-    :Update Index Map
-    (Path -> New Hash);
-  endif
-  :Save Index to Disk;
-}
+:Write index to disk;
 stop
+
 @enduml
