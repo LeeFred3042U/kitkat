@@ -12,8 +12,8 @@ import (
 
 const headsDir string = ".kitcat/refs/heads"
 
-// isValidRefName checks if the branch name is safe and valid
-func isValidRefName(name string) bool {
+// IsValidRefName checks if the branch or tag name is safe and valid
+func IsValidRefName(name string) bool {
 	if strings.Contains(name, "..") ||
 		strings.ContainsAny(name, `\/`) ||
 		strings.ContainsAny(name, "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\x7f") {
@@ -46,7 +46,7 @@ func readCommitHash(referencePath string) (string, error) {
 
 // Create a new branch pointing to the current HEAD commit
 func CreateBranch(name string) error {
-	if !isValidRefName(name) {
+	if !IsValidRefName(name) {
 		return fmt.Errorf("invalid branch name '%s'", name)
 	}
 	if IsBranch(name) {
@@ -116,7 +116,7 @@ func ListBranches() error {
 }
 
 func RenameCurrentBranch(newName string) error {
-	if !isValidRefName(newName) {
+	if !IsValidRefName(newName) {
 		return fmt.Errorf("invalid branch name '%s'", newName)
 	}
 	headPath := ".kitcat/HEAD"
