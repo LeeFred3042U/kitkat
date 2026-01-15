@@ -113,18 +113,31 @@ func Status() error {
 		return err
 	}
 
-	// Print Final Summary
-	fmt.Println("\nChanges to be committed:")
-	for _, change := range stagedChanges {
-		fmt.Printf("\t%s\n", change)
+	// Print Final Summary - Only show sections that have content
+	if len(stagedChanges) > 0 {
+		fmt.Println("\nChanges to be committed:")
+		for _, change := range stagedChanges {
+			fmt.Printf("\t%s\n", change)
+		}
 	}
-	fmt.Println("\nChanges not staged for commit:")
-	for _, change := range unstagedChanges {
-		fmt.Printf("\t%s\n", change)
+
+	if len(unstagedChanges) > 0 {
+		fmt.Println("\nChanges not staged for commit:")
+		for _, change := range unstagedChanges {
+			fmt.Printf("\t%s\n", change)
+		}
 	}
-	fmt.Println("\nUntracked files:")
-	for _, file := range untrackedFiles {
-		fmt.Printf("\t%s\n", file)
+
+	if len(untrackedFiles) > 0 {
+		fmt.Println("\nUntracked files:")
+		for _, file := range untrackedFiles {
+			fmt.Printf("\t%s\n", file)
+		}
+	}
+
+	// If all sections are empty, show a clean message
+	if len(stagedChanges) == 0 && len(unstagedChanges) == 0 && len(untrackedFiles) == 0 {
+		fmt.Println("nothing to commit, working tree clean")
 	}
 
 	return nil
