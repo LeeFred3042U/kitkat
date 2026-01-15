@@ -14,9 +14,14 @@ const headsDir string = ".kitcat/refs/heads"
 
 // IsValidRefName checks if the branch or tag name is safe and valid
 func IsValidRefName(name string) bool {
-	if strings.Contains(name, "..") ||
-		strings.ContainsAny(name, `\/`) ||
-		strings.ContainsAny(name, "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\x7f") {
+	if !IsSafePath(name) {
+		return false
+	}
+	if strings.ContainsAny(name, "/\\") {
+		return false
+	}
+	// Additional branch-specific checks (e.g., no spaces)
+	if strings.Contains(name, " ") {
 		return false
 	}
 	return true
