@@ -10,6 +10,9 @@ import (
 
 func RemoveFile(filename string) error {
 	filename = filepath.Clean(filename)
+	if !IsSafePath(filename) {
+		return fmt.Errorf("unsafe path detected: %s", filename)
+	}
 	index, err := storage.LoadIndex()
 	if err != nil {
 		return fmt.Errorf("failed to load index: %w", err)

@@ -229,19 +229,19 @@ func readHead() (string, error) {
 // IsSafePath checks if a file path is safe to use (prevents path traversal attacks).
 // Returns false if the path attempts to escape the repository directory.
 func IsSafePath(path string) bool {
-	// Clean the path to normalize it
 	cleanPath := filepath.Clean(path)
-
-	// Check for absolute paths (should be relative)
 	if filepath.IsAbs(cleanPath) {
 		return false
 	}
-
-	// Check for path traversal attempts (..)
 	if strings.Contains(cleanPath, "..") {
 		return false
 	}
-
+	// Check for ASCII control characters (0x00-0x1F, 0x7F)
+	for _, r := range cleanPath {
+		if r < 32 || r == 127 {
+			return false
+		}
+	}
 	return true
 }
 
