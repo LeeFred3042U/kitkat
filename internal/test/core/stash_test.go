@@ -8,50 +8,12 @@ import (
 
 	"github.com/LeeFred3042U/kitcat/internal/core"
 	"github.com/LeeFred3042U/kitcat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/testutil"
 )
-
-// setupTestRepo creates a temporary repository for testing
-func setupTestRepo(t *testing.T) (string, func()) {
-	t.Helper()
-
-	// Save current working directory
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create temp directory
-	tmpDir := t.TempDir()
-
-	// Change to temp directory
-	if err := os.Chdir(tmpDir); err != nil {
-		t.Fatal(err)
-	}
-
-	// Initialize repository
-	if err := core.InitRepo(); err != nil {
-		t.Fatal(err)
-	}
-
-	// Set up git config for commits
-	if err := core.SetConfig("user.name", "Test User"); err != nil {
-		t.Fatal(err)
-	}
-	if err := core.SetConfig("user.email", "test@example.com"); err != nil {
-		t.Fatal(err)
-	}
-
-	// Cleanup function
-	cleanup := func() {
-		_ = os.Chdir(cwd)
-	}
-
-	return tmpDir, cleanup
-}
 
 // TestStash_BasicWorkflow tests the basic stash save workflow
 func TestStash_BasicWorkflow(t *testing.T) {
-	tmpDir, cleanup := setupTestRepo(t)
+	tmpDir, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create and commit initial file
@@ -114,7 +76,7 @@ func TestStash_BasicWorkflow(t *testing.T) {
 
 // TestStash_CleanWorkingDirectory tests stashing with a clean working directory
 func TestStash_CleanWorkingDirectory(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create and commit initial file
@@ -141,7 +103,7 @@ func TestStash_CleanWorkingDirectory(t *testing.T) {
 
 // TestStash_StagedAndUnstagedChanges tests stashing with mixed changes
 func TestStash_StagedAndUnstagedChanges(t *testing.T) {
-	tmpDir, cleanup := setupTestRepo(t)
+	tmpDir, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create and commit initial files
@@ -207,7 +169,7 @@ func TestStash_StagedAndUnstagedChanges(t *testing.T) {
 
 // TestStashPop_Success tests successful stash pop
 func TestStashPop_Success(t *testing.T) {
-	tmpDir, cleanup := setupTestRepo(t)
+	tmpDir, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create and commit initial file
@@ -268,7 +230,7 @@ func TestStashPop_Success(t *testing.T) {
 
 // TestStashPop_NoStash tests popping when no stash exists
 func TestStashPop_NoStash(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create and commit initial file
@@ -295,7 +257,7 @@ func TestStashPop_NoStash(t *testing.T) {
 
 // TestStashPop_DirtyWorkingDirectory tests popping with dirty working directory
 func TestStashPop_DirtyWorkingDirectory(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create and commit initial file
@@ -338,7 +300,7 @@ func TestStashPop_DirtyWorkingDirectory(t *testing.T) {
 
 // TestStash_WIPCommitMessage tests the WIP commit message format
 func TestStash_WIPCommitMessage(t *testing.T) {
-	tmpDir, cleanup := setupTestRepo(t)
+	tmpDir, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create and commit initial file
@@ -387,7 +349,7 @@ func TestStash_WIPCommitMessage(t *testing.T) {
 
 // TestStash_PreservesIndex tests that stash preserves the staged index
 func TestStash_PreservesIndex(t *testing.T) {
-	tmpDir, cleanup := setupTestRepo(t)
+	tmpDir, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create and commit initial files
@@ -452,7 +414,7 @@ func TestStash_PreservesIndex(t *testing.T) {
 
 // TestStash_MultipleFiles tests stashing multiple files
 func TestStash_MultipleFiles(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create and commit multiple files
@@ -513,7 +475,7 @@ func TestStash_MultipleFiles(t *testing.T) {
 
 // TestStash_NoCommits tests stashing when there are no commits
 func TestStash_NoCommits(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Create a file without committing
@@ -537,7 +499,7 @@ func TestStash_NoCommits(t *testing.T) {
 
 // TestStash_UnstagedChanges integration test for stashing unstaged changes
 func TestStash_UnstagedChanges(t *testing.T) {
-	tmpDir, cleanup := setupTestRepo(t)
+	tmpDir, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// 1. Setup: Initialize and commit file.txt v1

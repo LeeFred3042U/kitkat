@@ -4,98 +4,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
-	"github.com/LeeFred3042U/kitcat/internal/models"
-	"github.com/LeeFred3042U/kitcat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/testutil"
 )
-
-// setupTestRepo creates a minimal repository structure for testing
-func setupTestRepo(t *testing.T) (string, func()) {
-	t.Helper()
-	repoDir := t.TempDir()
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get cwd: %v", err)
-	}
-
-	cleanup := func() {
-		_ = os.Chdir(cwd)
-	}
-
-	if err := os.Chdir(repoDir); err != nil {
-		cleanup()
-		t.Fatalf("failed to chdir to temp repo: %v", err)
-	}
-
-	// Initialize minimal .kitcat structure
-	dirs := []string{
-		".kitcat",
-		".kitcat/objects",
-		".kitcat/refs/heads",
-	}
-	for _, d := range dirs {
-		if err := os.MkdirAll(d, 0755); err != nil {
-			cleanup()
-			t.Fatalf("failed to create dir %s: %v", d, err)
-		}
-	}
-
-	// Create a dummy commit so branches can be created
-	filePath := "dummy.txt"
-	if err := os.WriteFile(filePath, []byte("initial"), 0644); err != nil {
-		cleanup()
-		t.Fatalf("failed to create dummy file: %v", err)
-	}
-
-	blobHash, err := storage.HashAndStoreFile(filePath)
-	if err != nil {
-		cleanup()
-		t.Fatalf("failed to store blob: %v", err)
-	}
-
-	index := map[string]string{filePath: blobHash}
-	if err := storage.WriteIndex(index); err != nil {
-		cleanup()
-		t.Fatalf("failed to write index: %v", err)
-	}
-
-	treeHash, err := storage.CreateTree()
-	if err != nil {
-		cleanup()
-		t.Fatalf("failed to create tree: %v", err)
-	}
-
-	commit := models.Commit{
-		TreeHash:  treeHash,
-		Message:   "Initial commit",
-		Timestamp: time.Now(),
-		ID:        "test-commit-hash",
-	}
-	if err := storage.AppendCommit(commit); err != nil {
-		cleanup()
-		t.Fatalf("failed to append commit: %v", err)
-	}
-
-	// Create main branch and set HEAD
-	mainBranchPath := filepath.Join(".kitcat", "refs", "heads", "main")
-	if err := os.WriteFile(mainBranchPath, []byte(commit.ID), 0644); err != nil {
-		cleanup()
-		t.Fatalf("failed to create main branch: %v", err)
-	}
-
-	headPath := ".kitcat/HEAD"
-	if err := os.WriteFile(headPath, []byte("ref: refs/heads/main\n"), 0644); err != nil {
-		cleanup()
-		t.Fatalf("failed to write HEAD: %v", err)
-	}
-
-	return repoDir, cleanup
-}
 
 // TestCreateBranch_InvalidName tests that CreateBranch rejects invalid branch names
 func TestCreateBranch_InvalidName(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	err := CreateBranch("../HEAD")
@@ -116,7 +31,7 @@ func TestCreateBranch_InvalidName(t *testing.T) {
 
 // TestCreateBranch_InvalidName_ValidName tests that valid names are accepted
 func TestCreateBranch_InvalidName_ValidName(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	err := CreateBranch("feature-branch")
@@ -133,7 +48,7 @@ func TestCreateBranch_InvalidName_ValidName(t *testing.T) {
 
 // TestCreateBranch_InvalidName_ParentTraversal tests parent directory traversal attempts
 func TestCreateBranch_InvalidName_ParentTraversal(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	err := CreateBranch("../../etc/passwd")
@@ -149,7 +64,7 @@ func TestCreateBranch_InvalidName_ParentTraversal(t *testing.T) {
 
 // TestCreateBranch_InvalidName_Backslash tests backslash path separator
 func TestCreateBranch_InvalidName_Backslash(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	err := CreateBranch("..\\HEAD")
@@ -160,7 +75,7 @@ func TestCreateBranch_InvalidName_Backslash(t *testing.T) {
 
 // TestCreateBranch_InvalidName_ForwardSlash tests forward slash path separator
 func TestCreateBranch_InvalidName_ForwardSlash(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	err := CreateBranch("../refs/heads/malicious")
@@ -171,7 +86,7 @@ func TestCreateBranch_InvalidName_ForwardSlash(t *testing.T) {
 
 // TestCreateBranch_InvalidName_ControlChar tests control character injection
 func TestCreateBranch_InvalidName_ControlChar(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	// Test with null byte
@@ -195,7 +110,7 @@ func TestCreateBranch_InvalidName_ControlChar(t *testing.T) {
 
 // TestRenameCurrentBranch_InvalidName tests that RenameCurrentBranch rejects invalid names
 func TestRenameCurrentBranch_InvalidName(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	err := RenameCurrentBranch("../HEAD")
@@ -222,7 +137,7 @@ func TestRenameCurrentBranch_InvalidName(t *testing.T) {
 
 // TestRenameCurrentBranch_InvalidName_ValidRename tests that valid renames work
 func TestRenameCurrentBranch_InvalidName_ValidRename(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	err := RenameCurrentBranch("develop")
@@ -254,7 +169,7 @@ func TestRenameCurrentBranch_InvalidName_ValidRename(t *testing.T) {
 
 // TestRenameCurrentBranch_InvalidName_InvalidRename tests invalid rename attempts
 func TestRenameCurrentBranch_InvalidName_InvalidRename(t *testing.T) {
-	_, cleanup := setupTestRepo(t)
+	_, cleanup := testutil.SetupTestRepo(t)
 	defer cleanup()
 
 	testCases := []struct {

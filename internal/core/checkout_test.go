@@ -7,36 +7,15 @@ import (
 
 	"github.com/LeeFred3042U/kitcat/internal/models"
 	"github.com/LeeFred3042U/kitcat/internal/storage"
+	"github.com/LeeFred3042U/kitcat/internal/testutil"
 )
 
 // Test_CheckoutFile_PreservesDirtyFile ensures strict safety behavior:
 // It verifies that CheckoutFile does NOT overwrite a file that has uncommitted changes.
 func Test_CheckoutFile_PreservesDirtyFile(t *testing.T) {
 	// 1. Setup temporary repository
-	repoDir := t.TempDir()
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get cwd: %v", err)
-	}
-	defer func() {
-		_ = os.Chdir(cwd)
-	}() // Restore cwd after test
-
-	if err := os.Chdir(repoDir); err != nil {
-		t.Fatalf("failed to chdir to temp repo: %v", err)
-	}
-
-	// Initialize minimal .kitkat structure
-	dirs := []string{
-		".kitcat",
-		".kitcat/objects",
-		".kitcat/refs/heads",
-	}
-	for _, d := range dirs {
-		if err := os.MkdirAll(d, 0755); err != nil {
-			t.Fatalf("failed to create dir %s: %v", d, err)
-		}
-	}
+	_, cleanup := testutil.SetupTestRepo(t)
+	defer cleanup()
 
 	// 2. Create a file foo.txt with content v1
 	filePath := "foo.txt"
@@ -115,30 +94,8 @@ func Test_CheckoutFile_PreservesDirtyFile(t *testing.T) {
 // after restoring a file. This prevents "phantom" changes from appearing in `kitkat status`.
 func Test_CheckoutFile_UpdatesIndex(t *testing.T) {
 	// 1. Setup temporary repository
-	repoDir := t.TempDir()
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get cwd: %v", err)
-	}
-	defer func() {
-		_ = os.Chdir(cwd)
-	}()
-
-	if err := os.Chdir(repoDir); err != nil {
-		t.Fatalf("failed to chdir to temp repo: %v", err)
-	}
-
-	// Initialize .kitkat structure
-	dirs := []string{
-		".kitcat",
-		".kitcat/objects",
-		".kitcat/refs/heads",
-	}
-	for _, d := range dirs {
-		if err := os.MkdirAll(d, 0755); err != nil {
-			t.Fatalf("failed to create dir %s: %v", d, err)
-		}
-	}
+	_, cleanup := testutil.SetupTestRepo(t)
+	defer cleanup()
 
 	// 2. Create and commit a file
 	filePath := "file.txt"
