@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/LeeFred3042U/kitcat/internal/core"
@@ -561,22 +562,87 @@ var commands = map[string]CommandFunc{
 			os.Exit(1)
 		}
 
-		// Handle subcommands
-		if len(args) > 0 && args[0] == "pop" {
-			if err := core.StashPop(); err != nil {
+		subcmd := "push"
+		if len(args) > 0 {
+			subcmd = args[0]
+		}
+
+		parseIndex := func(defaultIdx int, rest []string) (int, error) {
+			if len(rest) == 0 {
+				return defaultIdx, nil
+			}
+			i, err := strconv.Atoi(rest[0])
+			if err != nil || i < 0 {
+				return 0, fmt.Errorf("invalid stash index: %v", rest[0])
+			}
+			return i, nil
+		}
+
+		switch subcmd {
+		case "push":
+			message := ""
+			if len(args) > 1 {
+				message = strings.Join(args[1:], " ")
+			}
+			if _, err := core.StashPush(message); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			fmt.Println("Saved working directory and index state")
+			os.Exit(0)
+		case "list":
+			commits, err := core.StashList()
+			if err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			for i, c := range commits {
+				fmt.Printf("stash@{%d}: %s\n", i, c.Message)
+			}
+			os.Exit(0)
+		case "apply":
+			idx, err := parseIndex(0, args[1:])
+			if err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(2)
+			}
+			if err := core.StashApply(idx); err != nil {
 				fmt.Println("Error:", err)
 				os.Exit(1)
 			}
 			os.Exit(0)
+		case "drop":
+			idx, err := parseIndex(0, args[1:])
+			if err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(2)
+			}
+			if err := core.StashDrop(idx); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		case "clear":
+			if err := core.StashClear(); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		case "pop":
+			idx, err := parseIndex(0, args[1:])
+			if err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(2)
+			}
+			if err := core.StashPopAt(idx); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		default:
+			fmt.Println("Usage: kitcat stash [push [message] | list | apply [index] | drop [index] | clear | pop [index]]")
+			os.Exit(2)
 		}
-
-		// Default: stash save
-		if err := core.Stash(); err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(1)
-		}
-		fmt.Println("Saved working directory and index state")
-		os.Exit(0)
 	},
 }
 
