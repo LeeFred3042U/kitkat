@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
 
-func RemoveFile(filename string) error {
+func RemoveFile(filename string, recursive bool) error {
 	filename = filepath.Clean(filename)
 	if !IsSafePath(filename) {
 		return fmt.Errorf("unsafe path detected: %s", filename)
@@ -18,25 +19,49 @@ func RemoveFile(filename string) error {
 		return fmt.Errorf("failed to load index: %w", err)
 	}
 
-	// First, verify the file exists in the index
-	if _, ok := index[filename]; !ok {
+	var filesToRemove []string
+
+	if recursive {
+		// Recursive: find ALL tracked files under this directory
+		for trackedFile := range index {
+			// Match exact directory OR files under directory
+			if trackedFile == filename ||
+				strings.HasPrefix(trackedFile, filename+string(filepath.Separator)) {
+				filesToRemove = append(filesToRemove, trackedFile)
+			}
+		}
+	} else {
+		// Single file mode (original logic)
+		if _, ok := index[filename]; !ok {
+			return fmt.Errorf("pathspec '%s' did not match any files", filename)
+		}
+		filesToRemove = []string{filename}
+	}
+
+	if len(filesToRemove) == 0 {
 		return fmt.Errorf("pathspec '%s' did not match any files", filename)
 	}
 
-	// Step 1: Delete file from disk FIRST
-	if err := os.Remove(filename); err != nil {
-		// If file doesn't exist, that's OK (already deleted)
-		if !os.IsNotExist(err) {
-			// Permission error or other failure - return immediately
-			return err
+	// Step 1: Remove files from disk (non-fatal if missing)
+	for _, filePath := range filesToRemove {
+		if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
+			fmt.Printf("Warning: could not remove %s: %v\n", filePath, err)
 		}
 	}
 
-	// Step 2: Only update index if deletion succeeded
-	delete(index, filename)
+	// Step 2: Remove from index
+	for _, filePath := range filesToRemove {
+		delete(index, filePath)
+	}
 
+	// Step 3: Save updated index
 	if err := storage.WriteIndex(index); err != nil {
 		return fmt.Errorf("failed to save index: %w", err)
+	}
+
+	// Success message
+	if recursive && len(filesToRemove) > 1 {
+		fmt.Printf("Removed %d tracked files under '%s'\n", len(filesToRemove), filename)
 	}
 
 	return nil

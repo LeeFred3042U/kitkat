@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/LeeFred3042U/kitcat/internal/core"
 	"github.com/LeeFred3042U/kitcat/internal/models"
 	"github.com/LeeFred3042U/kitcat/internal/storage"
 )
@@ -17,7 +18,9 @@ import (
 func Stash() error {
 	// Step 1: Validate repository is initialized
 	if !IsRepoInitialized() {
-		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
+		return fmt.Errorf(
+			"fatal: not a kitcat repository (or any of the parent directories): .kitcat",
+		)
 	}
 
 	// Step 2: Get current HEAD commit for parent reference and message
@@ -112,7 +115,7 @@ func Stash() error {
 	}
 
 	// Step 11: Perform hard reset to HEAD to clean the workspace
-	if err := ResetHard(headCommit.ID); err != nil {
+	if err := Reset(headCommit.ID, core.ResetHard); err != nil {
 		// Attempt to clean up the stash reference on failure
 		_ = os.Remove(stashRefPath)
 		return fmt.Errorf("failed to reset workspace after stashing: %w", err)
@@ -127,7 +130,9 @@ func Stash() error {
 func StashPop() error {
 	// Step 1: Validate repository is initialized
 	if !IsRepoInitialized() {
-		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
+		return fmt.Errorf(
+			"fatal: not a kitcat repository (or any of the parent directories): .kitcat",
+		)
 	}
 
 	// Step 2: Check if stash exists
@@ -157,7 +162,9 @@ func StashPop() error {
 		return fmt.Errorf("failed to check working directory status: %w", err)
 	}
 	if isDirty {
-		return fmt.Errorf("error: your local changes would be overwritten by stash pop\nPlease commit your changes or stash them before you pop")
+		return fmt.Errorf(
+			"error: your local changes would be overwritten by stash pop\nPlease commit your changes or stash them before you pop",
+		)
 	}
 
 	// Step 5: Apply the stash commit to the working directory
