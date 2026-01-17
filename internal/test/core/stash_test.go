@@ -11,6 +11,26 @@ import (
 	"github.com/LeeFred3042U/kitcat/internal/testutil"
 )
 
+func readStashStack(t *testing.T, stashRefPath string) []string {
+	t.Helper()
+	data, err := os.ReadFile(stashRefPath)
+	if os.IsNotExist(err) {
+		return []string{}
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+	var out []string
+	for _, l := range lines {
+		l = strings.TrimSpace(l)
+		if l != "" {
+			out = append(out, l)
+		}
+	}
+	return out
+}
+
 // TestStash_BasicWorkflow tests the basic stash save workflow
 func TestStash_BasicWorkflow(t *testing.T) {
 	tmpDir, cleanup := testutil.SetupTestRepo(t)
@@ -52,15 +72,11 @@ func TestStash_BasicWorkflow(t *testing.T) {
 
 	// Verify stash reference exists
 	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	stashHashBytes, err := os.ReadFile(stashRefPath)
-	if err != nil {
-		t.Fatalf("Stash reference should exist: %v", err)
+	stack := readStashStack(t, stashRefPath)
+	if len(stack) == 0 {
+		t.Fatal("Stash reference should exist and contain at least one entry")
 	}
-
-	stashHash := strings.TrimSpace(string(stashHashBytes))
-	if stashHash == "" {
-		t.Error("Stash hash should not be empty")
-	}
+	stashHash := stack[0]
 
 	// Verify stash commit exists in commits.log
 	stashCommit, err := storage.FindCommit(stashHash)
@@ -162,7 +178,7 @@ func TestStash_StagedAndUnstagedChanges(t *testing.T) {
 
 	// Verify stash reference exists
 	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	if _, err := os.Stat(stashRefPath); os.IsNotExist(err) {
+	if stack := readStashStack(t, stashRefPath); len(stack) == 0 {
 		t.Error("Stash reference should exist")
 	}
 }
@@ -223,7 +239,7 @@ func TestStashPop_Success(t *testing.T) {
 
 	// Verify stash reference is deleted
 	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	if _, err := os.Stat(stashRefPath); !os.IsNotExist(err) {
+	if stack := readStashStack(t, stashRefPath); len(stack) != 0 {
 		t.Error("Stash reference should be deleted after pop")
 	}
 }
@@ -329,12 +345,11 @@ func TestStash_WIPCommitMessage(t *testing.T) {
 
 	// Read stash commit
 	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	stashHashBytes, err := os.ReadFile(stashRefPath)
-	if err != nil {
-		t.Fatal(err)
+	stack := readStashStack(t, stashRefPath)
+	if len(stack) == 0 {
+		t.Fatalf("stash stack should not be empty")
 	}
-
-	stashHash := strings.TrimSpace(string(stashHashBytes))
+	stashHash := stack[0]
 	stashCommit, err := storage.FindCommit(stashHash)
 	if err != nil {
 		t.Fatal(err)
@@ -386,12 +401,11 @@ func TestStash_PreservesIndex(t *testing.T) {
 
 	// Read stash commit and verify tree
 	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	stashHashBytes, err := os.ReadFile(stashRefPath)
-	if err != nil {
-		t.Fatal(err)
+	stack := readStashStack(t, stashRefPath)
+	if len(stack) == 0 {
+		t.Fatalf("stash stack should not be empty")
 	}
-
-	stashHash := strings.TrimSpace(string(stashHashBytes))
+	stashHash := stack[0]
 	stashCommit, err := storage.FindCommit(stashHash)
 	if err != nil {
 		t.Fatal(err)
@@ -549,7 +563,170 @@ func TestStash_UnstagedChanges(t *testing.T) {
 
 	// 7. Verification: Ensure stash reference is gone
 	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	if _, err := os.Stat(stashRefPath); !os.IsNotExist(err) {
+	if stack := readStashStack(t, stashRefPath); len(stack) != 0 {
 		t.Error("Stash reference should be deleted after pop")
+	}
+}
+
+// TestStash_ListAndOrder verifies multiple stashes are stacked newest-first.
+func TestStash_ListAndOrder(t *testing.T) {
+	_, cleanup := testutil.SetupTestRepo(t)
+	defer cleanup()
+
+	file := "file.txt"
+	if err := os.WriteFile(file, []byte("v1"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := core.Commit("initial"); err != nil {
+		t.Fatal(err)
+	}
+
+	// First stash (v2)
+	if err := os.WriteFile(file, []byte("v2"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.StashPush("first stash"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Second stash (v3)
+	if err := os.WriteFile(file, []byte("v3"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.StashPush("second stash"); err != nil {
+		t.Fatal(err)
+	}
+
+	commits, err := core.StashList()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(commits) != 2 {
+		t.Fatalf("expected 2 stashes, got %d", len(commits))
+	}
+	if commits[0].Message != "second stash" || commits[1].Message != "first stash" {
+		t.Fatalf("unexpected stash order: %s, %s", commits[0].Message, commits[1].Message)
+	}
+}
+
+// TestStash_ApplyByIndex ensures apply uses the requested index and keeps the stack.
+func TestStash_ApplyByIndex(t *testing.T) {
+	tmpDir, cleanup := testutil.SetupTestRepo(t)
+	defer cleanup()
+
+	file := "file.txt"
+	if err := os.WriteFile(file, []byte("base"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := core.Commit("base"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Stash v2
+	if err := os.WriteFile(file, []byte("v2"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.StashPush("stash v2"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Stash v3
+	if err := os.WriteFile(file, []byte("v3"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.StashPush("stash v3"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Apply the older stash (index 1) -> expect v2
+	if err := core.StashApply(1); err != nil {
+		t.Fatalf("StashApply failed: %v", err)
+	}
+
+	content, err := os.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(content) != "v2" {
+		t.Fatalf("expected file content 'v2', got '%s'", string(content))
+	}
+
+	// Stack should remain with 2 entries
+	stack := readStashStack(t, filepath.Join(tmpDir, ".kitcat", "refs", "stash"))
+	if len(stack) != 2 {
+		t.Fatalf("stash stack should remain intact, expected 2 entries, got %d", len(stack))
+	}
+}
+
+// TestStash_DropAndClear validates drop by index and clear.
+func TestStash_DropAndClear(t *testing.T) {
+	tmpDir, cleanup := testutil.SetupTestRepo(t)
+	defer cleanup()
+
+	file := "file.txt"
+	if err := os.WriteFile(file, []byte("base"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := core.Commit("base"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(file, []byte("v2"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.StashPush("stash v2"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(file, []byte("v3"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(file); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.StashPush("stash v3"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Drop older stash (index 1)
+	if err := core.StashDrop(1); err != nil {
+		t.Fatalf("StashDrop failed: %v", err)
+	}
+	stack := readStashStack(t, filepath.Join(tmpDir, ".kitcat", "refs", "stash"))
+	if len(stack) != 1 {
+		t.Fatalf("expected 1 stash after drop, got %d", len(stack))
+	}
+
+	// Clear should remove all
+	if err := core.StashClear(); err != nil {
+		t.Fatalf("StashClear failed: %v", err)
+	}
+	stack = readStashStack(t, filepath.Join(tmpDir, ".kitcat", "refs", "stash"))
+	if len(stack) != 0 {
+		t.Fatalf("expected 0 stashes after clear, got %d", len(stack))
 	}
 }
