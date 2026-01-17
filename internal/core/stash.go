@@ -14,7 +14,17 @@ import (
 // It creates a "WIP" commit containing the current index state and then performs a hard
 // reset to HEAD, cleaning the workspace. This allows users to switch branches or pull
 // updates without losing their work-in-progress.
+// This is a convenience wrapper that calls StashPush with an empty message.
 func Stash() error {
+	return StashPush("")
+}
+
+// StashPush saves the current working directory and index state to the stash stack.
+// It creates a "WIP" commit with an optional custom message and performs a hard reset
+// to HEAD, cleaning the workspace. The stash is pushed to the top of the stash stack.
+// If message is empty, uses default format: "WIP on <branch>: <latest_commit_message>"
+// If message is provided, uses format: "WIP on <branch>: <custom_message>"
+func StashPush(message string) error {
 	// Step 1: Validate repository is initialized
 	if !IsRepoInitialized() {
 		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
@@ -86,8 +96,13 @@ func Stash() error {
 	}
 
 	// Step 7: Create WIP commit message
-	// Format: "WIP on <branch>: <latest_commit_message>"
-	wipMessage := fmt.Sprintf("WIP on %s: %s", branchName, headCommit.Message)
+	// If custom message provided, use it; otherwise use default format
+	var wipMessage string
+	if message != "" {
+		wipMessage = fmt.Sprintf("WIP on %s: %s", branchName, message)
+	} else {
+		wipMessage = fmt.Sprintf("WIP on %s: %s", branchName, headCommit.Message)
+	}
 
 	// Step 8: Create the stash commit
 	stashCommit := models.Commit{
@@ -105,16 +120,15 @@ func Stash() error {
 		return fmt.Errorf("failed to save stash commit: %w", err)
 	}
 
-	// Step 10: Write the stash reference
-	stashRefPath := ".kitcat/refs/stash"
-	if err := SafeWrite(stashRefPath, []byte(stashCommit.ID), 0o644); err != nil {
-		return fmt.Errorf("failed to write stash reference: %w", err)
+	// Step 10: Push the stash to the stack
+	if err := storage.PushStash(stashCommit.ID); err != nil {
+		return fmt.Errorf("failed to push stash: %w", err)
 	}
 
 	// Step 11: Perform hard reset to HEAD to clean the workspace
 	if err := ResetHard(headCommit.ID); err != nil {
-		// Attempt to clean up the stash reference on failure
-		_ = os.Remove(stashRefPath)
+		// Note: We don't clean up the stash on failure as it's already in the stack
+		// The user can manually pop it if needed
 		return fmt.Errorf("failed to reset workspace after stashing: %w", err)
 	}
 
@@ -130,19 +144,13 @@ func StashPop() error {
 		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
 	}
 
-	// Step 2: Check if stash exists
-	stashRefPath := ".kitcat/refs/stash"
-	stashHashBytes, err := os.ReadFile(stashRefPath)
+	// Step 2: Pop the most recent stash from the stack
+	stashHash, err := storage.PopStash()
 	if err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("no stash found")
+		if err == storage.ErrNoStash {
+			return fmt.Errorf("no stash entries found")
 		}
-		return fmt.Errorf("failed to read stash reference: %w", err)
-	}
-
-	stashHash := strings.TrimSpace(string(stashHashBytes))
-	if stashHash == "" {
-		return fmt.Errorf("stash reference is empty")
+		return fmt.Errorf("failed to pop stash: %w", err)
 	}
 
 	// Step 3: Verify the stash commit exists
@@ -165,15 +173,9 @@ func StashPop() error {
 		return fmt.Errorf("failed to apply stash: %w", err)
 	}
 
-	// Step 6: Remove the stash reference
-	if err := os.Remove(stashRefPath); err != nil {
-		// Log warning but don't fail - the stash was already applied
-		fmt.Fprintf(os.Stderr, "Warning: failed to remove stash reference: %v\n", err)
-	}
-
-	// Step 7: Print success message with commit info
+	// Step 6: Print success message with commit info
 	fmt.Printf("On branch %s\n", getCurrentBranchName())
-	fmt.Printf("Dropped refs/stash (%s)\n", stashCommit.ID[:7])
+	fmt.Printf("Dropped refs/stash@{0} (%s)\n", stashCommit.ID[:7])
 
 	return nil
 }

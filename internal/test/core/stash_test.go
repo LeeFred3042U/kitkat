@@ -88,11 +88,11 @@ func TestStash_BasicWorkflow(t *testing.T) {
 		t.Error("Working directory should be clean after stash")
 	}
 
-	// Verify stash reference exists
-	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	stashHashBytes, err := os.ReadFile(stashRefPath)
+	// Verify stash log exists and contains the commit
+	stashLogPath := filepath.Join(tmpDir, ".kitcat", "stash.log")
+	stashHashBytes, err := os.ReadFile(stashLogPath)
 	if err != nil {
-		t.Fatalf("Stash reference should exist: %v", err)
+		t.Fatalf("Stash log should exist: %v", err)
 	}
 
 	stashHash := strings.TrimSpace(string(stashHashBytes))
@@ -198,10 +198,10 @@ func TestStash_StagedAndUnstagedChanges(t *testing.T) {
 		t.Errorf("file2 should be reset to HEAD content, got: %s", string(content2))
 	}
 
-	// Verify stash reference exists
-	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	if _, err := os.Stat(stashRefPath); os.IsNotExist(err) {
-		t.Error("Stash reference should exist")
+	// Verify stash log exists
+	stashLogPath := filepath.Join(tmpDir, ".kitcat", "stash.log")
+	if _, err := os.Stat(stashLogPath); os.IsNotExist(err) {
+		t.Error("Stash log should exist")
 	}
 }
 
@@ -259,10 +259,11 @@ func TestStashPop_Success(t *testing.T) {
 		t.Errorf("File should be restored after pop, got: %s, want: %s", string(content), modifiedContent)
 	}
 
-	// Verify stash reference is deleted
-	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	if _, err := os.Stat(stashRefPath); !os.IsNotExist(err) {
-		t.Error("Stash reference should be deleted after pop")
+	// Verify stash log is empty or deleted
+	stashLogPath := filepath.Join(tmpDir, ".kitcat", "stash.log")
+	content, err = os.ReadFile(stashLogPath)
+	if err == nil && len(strings.TrimSpace(string(content))) > 0 {
+		t.Error("Stash log should be empty after pop")
 	}
 }
 
@@ -288,8 +289,8 @@ func TestStashPop_NoStash(t *testing.T) {
 	if err == nil {
 		t.Fatal("StashPop should fail when no stash exists")
 	}
-	if !strings.Contains(err.Error(), "no stash found") {
-		t.Errorf("Expected 'no stash found' error, got: %v", err)
+	if !strings.Contains(err.Error(), "no stash entries found") {
+		t.Errorf("Expected 'no stash entries found' error, got: %v", err)
 	}
 }
 
@@ -365,9 +366,9 @@ func TestStash_WIPCommitMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Read stash commit
-	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	stashHashBytes, err := os.ReadFile(stashRefPath)
+	// Read stash commit from log
+	stashLogPath := filepath.Join(tmpDir, ".kitcat", "stash.log")
+	stashHashBytes, err := os.ReadFile(stashLogPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -423,8 +424,8 @@ func TestStash_PreservesIndex(t *testing.T) {
 	}
 
 	// Read stash commit and verify tree
-	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	stashHashBytes, err := os.ReadFile(stashRefPath)
+	stashLogPath := filepath.Join(tmpDir, ".kitcat", "stash.log")
+	stashHashBytes, err := os.ReadFile(stashLogPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -585,9 +586,10 @@ func TestStash_UnstagedChanges(t *testing.T) {
 		t.Errorf("File should be restored to v2 after pop, got: %s", string(content))
 	}
 
-	// 7. Verification: Ensure stash reference is gone
-	stashRefPath := filepath.Join(tmpDir, ".kitcat", "refs", "stash")
-	if _, err := os.Stat(stashRefPath); !os.IsNotExist(err) {
-		t.Error("Stash reference should be deleted after pop")
+	// 7. Verification: Ensure stash log is empty/updated
+	stashLogPath := filepath.Join(tmpDir, ".kitcat", "stash.log")
+	content, err = os.ReadFile(stashLogPath)
+	if err == nil && len(strings.TrimSpace(string(content))) > 0 {
+		t.Error("Stash log should be empty after pop")
 	}
 }
