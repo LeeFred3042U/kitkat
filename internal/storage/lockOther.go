@@ -13,6 +13,11 @@ func lock(path string) (*os.File, error) {
 	return f, nil
 }
 
+// LockFile is a no-op on non-Unix systems (unless we add valid windows locking later)
+func LockFile(f *os.File) error {
+	return nil
+}
+
 func unlock(f *os.File) {
 	f.Close()
 }
