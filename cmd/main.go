@@ -562,6 +562,19 @@ var commands = map[string]CommandFunc{
 		}
 
 		// Handle subcommands
+		if len(args) > 0 && args[0] == "push" {
+			message := ""
+			if len(args) > 1 {
+				message = strings.Join(args[1:], " ")
+			}
+			if err := core.StashPush(message); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			fmt.Println("Saved working directory and index state")
+			os.Exit(0)
+		}
+
 		if len(args) > 0 && args[0] == "pop" {
 			if err := core.StashPop(); err != nil {
 				fmt.Println("Error:", err)
