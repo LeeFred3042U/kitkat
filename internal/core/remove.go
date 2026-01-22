@@ -19,8 +19,19 @@ func RemoveFile(filename string) error {
 	}
 
 	// First, verify the file exists in the index
-	if _, ok := index[filename]; !ok {
+	indexHash, ok := index[filename]
+	if !ok {
 		return fmt.Errorf("pathspec '%s' did not match any files", filename)
+	}
+
+	// Check for uncommitted changes before deletion
+	diskHash, err := storage.HashFile(filename)
+	if err != nil {
+		return fmt.Errorf("failed to hash file: %w", err)
+	}
+
+	if diskHash != indexHash {
+		return fmt.Errorf("local changes present")
 	}
 
 	// Step 1: Delete file from disk FIRST
