@@ -13,31 +13,24 @@ func RemoveFile(filename string) error {
 	if !IsSafePath(filename) {
 		return fmt.Errorf("unsafe path detected: %s", filename)
 	}
-	index, err := storage.LoadIndex()
-	if err != nil {
-		return fmt.Errorf("failed to load index: %w", err)
-	}
-
-	// First, verify the file exists in the index
-	if _, ok := index[filename]; !ok {
-		return fmt.Errorf("pathspec '%s' did not match any files", filename)
-	}
-
-	// Step 1: Delete file from disk FIRST
-	if err := os.Remove(filename); err != nil {
-		// If file doesn't exist, that's OK (already deleted)
-		if !os.IsNotExist(err) {
-			// Permission error or other failure - return immediately
-			return err
+	// Use UpdateIndex to safely update the index transactionally
+	return storage.UpdateIndex(func(index map[string]string) error {
+		// First, verify the file exists in the index
+		if _, ok := index[filename]; !ok {
+			return fmt.Errorf("pathspec '%s' did not match any files", filename)
 		}
-	}
 
-	// Step 2: Only update index if deletion succeeded
-	delete(index, filename)
+		// Step 1: Delete file from disk FIRST
+		if err := os.Remove(filename); err != nil {
+			// If file doesn't exist, that's OK (already deleted)
+			if !os.IsNotExist(err) {
+				// Permission error or other failure - return immediately
+				return err
+			}
+		}
 
-	if err := storage.WriteIndex(index); err != nil {
-		return fmt.Errorf("failed to save index: %w", err)
-	}
-
-	return nil
+		// Step 2: Only update index if deletion succeeded (or file was already gone)
+		delete(index, filename)
+		return nil
+	})
 }
