@@ -8,9 +8,9 @@ import (
 
 	"github.com/LeeFred3042U/kitcat/internal/core"
 	"github.com/LeeFred3042U/kitcat/internal/storage"
+	"io"
 )
 
-// setupTestRepo creates a temporary repository for testing
 func setupTestRepo(t *testing.T) (string, func()) {
 	t.Helper()
 
@@ -49,7 +49,6 @@ func setupTestRepo(t *testing.T) (string, func()) {
 	return tmpDir, cleanup
 }
 
-// TestStash_BasicWorkflow tests the basic stash save workflow
 func TestStash_BasicWorkflow(t *testing.T) {
 	tmpDir, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -112,7 +111,6 @@ func TestStash_BasicWorkflow(t *testing.T) {
 	}
 }
 
-// TestStash_CleanWorkingDirectory tests stashing with a clean working directory
 func TestStash_CleanWorkingDirectory(t *testing.T) {
 	_, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -139,7 +137,6 @@ func TestStash_CleanWorkingDirectory(t *testing.T) {
 	}
 }
 
-// TestStash_StagedAndUnstagedChanges tests stashing with mixed changes
 func TestStash_StagedAndUnstagedChanges(t *testing.T) {
 	tmpDir, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -205,7 +202,6 @@ func TestStash_StagedAndUnstagedChanges(t *testing.T) {
 	}
 }
 
-// TestStashPop_Success tests successful stash pop
 func TestStashPop_Success(t *testing.T) {
 	tmpDir, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -267,7 +263,6 @@ func TestStashPop_Success(t *testing.T) {
 	}
 }
 
-// TestStashPop_NoStash tests popping when no stash exists
 func TestStashPop_NoStash(t *testing.T) {
 	_, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -294,7 +289,6 @@ func TestStashPop_NoStash(t *testing.T) {
 	}
 }
 
-// TestStashPop_DirtyWorkingDirectory tests popping with dirty working directory
 func TestStashPop_DirtyWorkingDirectory(t *testing.T) {
 	_, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -337,7 +331,6 @@ func TestStashPop_DirtyWorkingDirectory(t *testing.T) {
 	}
 }
 
-// TestStash_WIPCommitMessage tests the WIP commit message format
 func TestStash_WIPCommitMessage(t *testing.T) {
 	tmpDir, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -386,7 +379,6 @@ func TestStash_WIPCommitMessage(t *testing.T) {
 	}
 }
 
-// TestStash_PreservesIndex tests that stash preserves the staged index
 func TestStash_PreservesIndex(t *testing.T) {
 	tmpDir, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -451,7 +443,6 @@ func TestStash_PreservesIndex(t *testing.T) {
 	}
 }
 
-// TestStash_MultipleFiles tests stashing multiple files
 func TestStash_MultipleFiles(t *testing.T) {
 	_, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -512,7 +503,6 @@ func TestStash_MultipleFiles(t *testing.T) {
 	}
 }
 
-// TestStash_NoCommits tests stashing when there are no commits
 func TestStash_NoCommits(t *testing.T) {
 	_, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -536,7 +526,6 @@ func TestStash_NoCommits(t *testing.T) {
 	}
 }
 
-// TestStash_UnstagedChanges integration test for stashing unstaged changes
 func TestStash_UnstagedChanges(t *testing.T) {
 	tmpDir, cleanup := setupTestRepo(t)
 	defer cleanup()
@@ -591,5 +580,83 @@ func TestStash_UnstagedChanges(t *testing.T) {
 	content, err = os.ReadFile(stashLogPath)
 	if err == nil && len(strings.TrimSpace(string(content))) > 0 {
 		t.Error("Stash log should be empty after pop")
+	}
+}
+
+func TestStash_List(t *testing.T) {
+	_, cleanup := setupTestRepo(t)
+	defer cleanup()
+
+	// Create and commit initial file
+	testFile := "test.txt"
+	if err := os.WriteFile(testFile, []byte("v1"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.AddFile(testFile); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := core.Commit("commit 1"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Stash 1 (Oldest)
+	if err := os.WriteFile(testFile, []byte("wip1"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.StashPush("message 1"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Stash 2 (Newest)
+	if err := os.WriteFile(testFile, []byte("wip2"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := core.StashPush("message 2"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Capture stdout
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	err := core.StashList()
+
+	w.Close()
+	os.Stdout = oldStdout
+
+	if err != nil {
+		t.Fatalf("StashList failed: %v", err)
+	}
+
+	out, _ := io.ReadAll(r)
+	output := string(out)
+
+	// Verify output contains messages and correct indices
+	// Expected:
+	// stash@{0}: WIP on ...: message 2
+	// stash@{1}: WIP on ...: message 1
+
+	if !strings.Contains(output, "stash@{0}:") {
+		t.Error("Output should contain stash@{0}")
+	}
+	if !strings.Contains(output, "message 2") {
+		t.Error("Output should contain message 2")
+	}
+	if !strings.Contains(output, "stash@{1}:") {
+		t.Error("Output should contain stash@{1}")
+	}
+	if !strings.Contains(output, "message 1") {
+		t.Error("Output should contain message 1")
+	}
+
+	// Verify order
+	idx1 := strings.Index(output, "message 1")
+	idx2 := strings.Index(output, "message 2")
+	if idx2 == -1 || idx1 == -1 {
+		t.Fatal("Messages not found in output")
+	}
+	if idx2 > idx1 {
+		t.Error("message 2 (newer) should appear before message 1 (older)")
 	}
 }
