@@ -143,3 +143,21 @@ func ListStashes() ([]string, error) {
 
 	return stashes, nil
 }
+
+// ClearStash removes all stash entries by truncating the stash file to size 0.
+func ClearStash() error {
+	// If the file doesn't exist, nothing to clear
+	if _, err := os.Stat(stashPath); os.IsNotExist(err) {
+		return nil
+	}
+
+	// Lock the file to prevent concurrent writes
+	lockFile, err := lock(stashPath)
+	if err != nil {
+		return err
+	}
+	defer unlock(lockFile)
+
+	// Truncate the file to size 0
+	return os.Truncate(stashPath, 0)
+}
