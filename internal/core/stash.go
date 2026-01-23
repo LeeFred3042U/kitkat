@@ -188,3 +188,25 @@ func getCurrentBranchName() string {
 	}
 	return headState
 }
+
+// StashList lists all stashed states in reverse chronological order.
+func StashList() error {
+	if !IsRepoInitialized() {
+		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
+	}
+
+	stashes, err := storage.ListStashes()
+	if err != nil {
+		return fmt.Errorf("failed to list stashes: %w", err)
+	}
+
+	for i, hash := range stashes {
+		commit, err := storage.FindCommit(hash)
+		if err != nil {
+			return fmt.Errorf("failed to find commit for stash %s: %w", hash, err)
+		}
+		fmt.Printf("stash@{%d}: %s\n", i, commit.Message)
+	}
+
+	return nil
+}

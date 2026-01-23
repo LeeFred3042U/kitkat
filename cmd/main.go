@@ -581,8 +581,14 @@ var commands = map[string]CommandFunc{
 			fmt.Println("Error: not a kitcat repository (or any of the parent directories): .kitcat")
 			os.Exit(1)
 		}
+		if len(args) > 0 && args[0] == "list" {
+			if err := core.StashList(); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
+		}
 
-		// Handle subcommands
 		if len(args) > 0 && args[0] == "push" {
 			message := ""
 			if len(args) > 1 {
