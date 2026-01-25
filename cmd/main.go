@@ -610,6 +610,15 @@ var commands = map[string]CommandFunc{
 			os.Exit(0)
 		}
 
+		if len(args) > 0 && args[0] == "clear" {
+			if err := core.StashClear(); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			fmt.Println("Cleared all stash entries")
+			os.Exit(0)
+		}
+
 		// Default: stash save
 		if err := core.Stash(); err != nil {
 			fmt.Println("Error:", err)

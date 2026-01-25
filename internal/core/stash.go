@@ -210,3 +210,17 @@ func StashList() error {
 
 	return nil
 }
+
+// StashClear removes all stash entries from the stash stack.
+// It truncates the stash file to size 0, effectively clearing all stashed changes.
+func StashClear() error {
+	if !IsRepoInitialized() {
+		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
+	}
+
+	if err := storage.ClearStash(); err != nil {
+		return fmt.Errorf("failed to clear stash: %w", err)
+	}
+
+	return nil
+}
