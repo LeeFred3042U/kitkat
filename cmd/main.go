@@ -182,9 +182,13 @@ var commands = map[string]CommandFunc{
 	},
 	"diff": func(args []string) {
 		staged := false
-		if len(args) > 0 {
-			if args[0] == "--cached" || args[0] == "--staged" {
+		for _, arg := range args {
+			switch arg {
+			case "--cached", "--staged":
 				staged = true
+			default:
+				fmt.Println("Path filtering not supported")
+				os.Exit(2)
 			}
 		}
 		if err := core.Diff(staged); err != nil {
