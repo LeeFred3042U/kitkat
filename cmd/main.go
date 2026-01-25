@@ -503,8 +503,11 @@ var commands = map[string]CommandFunc{
 	},
 	"branch": func(args []string) {
 		if len(args) == 0 {
-			fmt.Println("Usage: kitcat branch [-l | -r <branch-name> | -d <branch-name>]")
-			os.Exit(2)
+			if err := core.ListBranches(); err != nil {
+				fmt.Fprintln(os.Stderr, "Error:", err)
+				os.Exit(1)
+			}
+			os.Exit(0)
 		}
 		switch args[0] {
 		case "-l":
