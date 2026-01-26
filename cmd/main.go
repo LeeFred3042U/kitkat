@@ -50,11 +50,31 @@ var commands = map[string]CommandFunc{
 
 	"rm": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitcat rm <file>")
+			fmt.Println("Usage: kitcat rm [-r] <file>")
 			os.Exit(2)
 		}
-		filename := args[0]
-		if err := core.RemoveFile(filename); err != nil {
+
+		recursive := false
+		filename := ""
+
+		i := 0
+		for i < len(args) {
+			switch args[i] {
+			case "-r":
+				recursive = true
+				i++
+			default:
+				filename = args[i]
+				i++
+			}
+		}
+
+		if filename == "" {
+			fmt.Println("Usage: kitcat rm [-r] <file>")
+			os.Exit(2)
+		}
+
+		if err := core.RemoveFile(filename, recursive); err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
@@ -194,7 +214,9 @@ var commands = map[string]CommandFunc{
 	},
 	"checkout": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitcat checkout [-b] <branch-name> | <file-path> | <branch> -- <file-path>")
+			fmt.Println(
+				"Usage: kitcat checkout [-b] <branch-name> | <file-path> | <branch> -- <file-path>",
+			)
 			os.Exit(2)
 		}
 
@@ -300,15 +322,55 @@ var commands = map[string]CommandFunc{
 	},
 	"reset": func(args []string) {
 		if len(args) < 2 {
-			fmt.Println("Usage: kitcat reset --hard <commit-hash>")
+			fmt.Println("Usage: kitkat reset [--soft | --mixed | --hard] <commit-hash>")
 			os.Exit(2)
 		}
-		if args[0] != "--hard" {
-			fmt.Println("Error: only 'reset --hard' is currently supported")
-			fmt.Println("Usage: kitcat reset --hard <commit-hash>")
+
+		mode := ""
+		commitHash := ""
+
+		// Helper function to safely get next argument
+		safeNext := func(i int) string {
+			if i+1 < len(args) {
+				return args[i+1]
+			}
+			return ""
+		}
+
+		i := 0
+		for i < len(args) {
+			switch args[i] {
+			case "--" + core.ResetSoft:
+				mode = core.ResetSoft
+				commitHash = safeNext(i)
+				i += 2 // Skip current and next arg
+			case "--" + core.ResetMixed:
+				mode = core.ResetMixed
+				commitHash = safeNext(i)
+				i += 2 // Skip current and next arg
+			case "--" + core.ResetHard:
+				mode = core.ResetHard
+				commitHash = safeNext(i)
+				i += 2 // Skip current and next arg
+			default:
+				commitHash = args[i]
+				mode = core.ResetMixed
+				i++
+			}
+		}
+
+		if mode == "" {
+			fmt.Println("Error: must specify --soft, --mixed, or --hard")
+			fmt.Println("Usage: kitkat reset [--soft | --mixed | --hard] <commit-hash>")
 			os.Exit(2)
 		}
-		if err := core.ResetHard(args[1]); err != nil {
+
+		if commitHash == "" {
+			fmt.Println("Error: commit hash required")
+			os.Exit(2)
+		}
+
+		if err := core.Reset(commitHash, mode); err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
@@ -581,7 +643,9 @@ var commands = map[string]CommandFunc{
 	},
 	"stash": func(args []string) {
 		if !core.IsRepoInitialized() {
-			fmt.Println("Error: not a kitcat repository (or any of the parent directories): .kitcat")
+			fmt.Println(
+				"Error: not a kitcat repository (or any of the parent directories): .kitcat",
+			)
 			os.Exit(1)
 		}
 		if len(args) > 0 && args[0] == "list" {

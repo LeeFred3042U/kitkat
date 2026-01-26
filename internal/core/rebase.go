@@ -233,7 +233,7 @@ func RebaseAbort() error {
 			return err
 		}
 	} else {
-		if err := ResetHard(state.OrigHead); err != nil {
+		if err := Reset(state.OrigHead, "hard"); err != nil {
 			return err
 		}
 	}
@@ -427,7 +427,7 @@ func applyChanges(changes map[string]Change) error {
 					path,
 				)
 			}
-			if err := RemoveFile(path); err != nil {
+			if err := RemoveFile(path, false); err != nil {
 				return err
 			}
 		} else {
