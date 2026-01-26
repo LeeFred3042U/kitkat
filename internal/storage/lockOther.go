@@ -13,7 +13,7 @@ import (
 // of the lock file as the lock itself.
 func lock(path string) (*os.File, error) {
 	lockFile := path + ".lock"
-	
+
 	timeout := time.After(5 * time.Second)
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
@@ -24,7 +24,7 @@ func lock(path string) (*os.File, error) {
 		if err == nil {
 			return f, nil
 		}
-		
+
 		if !os.IsExist(err) {
 			return nil, fmt.Errorf("failed to acquire lock: %w", err)
 		}
