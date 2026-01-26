@@ -50,16 +50,20 @@ var commands = map[string]CommandFunc{
 
 	"rm": func(args []string) {
 		if len(args) < 1 {
-			fmt.Println("Usage: kitcat rm <file>")
+			fmt.Println("Usage: kitcat rm <file> [file...]")
 			os.Exit(2)
 		}
-		filename := args[0]
-		if err := core.RemoveFile(filename); err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(1)
+
+		exitCode := 0
+		for _, filename := range args {
+			if err := core.RemoveFile(filename); err != nil {
+				fmt.Printf("Error removing '%s': %v\n", filename, err)
+				exitCode = 1
+			} else {
+				fmt.Printf("Removed '%s'\n", filename)
+			}
 		}
-		fmt.Printf("Removed '%s'\n", filename)
-		os.Exit(0)
+		os.Exit(exitCode)
 	},
 	"commit": func(args []string) {
 		if !core.IsRepoInitialized() {
