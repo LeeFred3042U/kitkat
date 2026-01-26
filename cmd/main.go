@@ -13,6 +13,7 @@ type CommandFunc func(args []string)
 
 var commands = map[string]CommandFunc{
 	"init": func(args []string) {
+		core.EnsureArgs(args, 0, 0, "init")
 		if err := core.InitRepo(); err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
