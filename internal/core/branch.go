@@ -124,16 +124,19 @@ func RenameCurrentBranch(newName string) error {
 	if !IsValidRefName(newName) {
 		return fmt.Errorf("invalid branch name '%s'", newName)
 	}
+
 	headPath := ".kitcat/HEAD"
 	headContent, err := os.ReadFile(headPath)
 	if err != nil {
 		return err
 	}
+
 	headStr := strings.TrimSpace(string(headContent))
 	const refPrefix = "ref: refs/heads/"
 	if !strings.HasPrefix(headStr, refPrefix) {
 		return errors.New("HEAD is not pointing to a branch")
 	}
+
 	oldName := strings.TrimPrefix(headStr, refPrefix)
 	oldRef := filepath.Join(".kitcat", "refs", "heads", oldName)
 	newRef := filepath.Join(".kitcat", "refs", "heads", newName)
@@ -141,10 +144,26 @@ func RenameCurrentBranch(newName string) error {
 	if _, err := os.Stat(newRef); err == nil {
 		return fmt.Errorf("branch '%s' already exists", newName)
 	}
-	if err := os.Rename(oldRef, newRef); err != nil {
+
+	commitHash, err := os.ReadFile(oldRef)
+	if err != nil {
 		return err
 	}
-	return os.WriteFile(headPath, []byte(refPrefix+newName+"\n"), 0o644)
+
+	if err := os.WriteFile(newRef, commitHash, 0o644); err != nil {
+		return err
+	}
+
+	newHeadContent := []byte(refPrefix + newName + "\n")
+	if err := os.WriteFile(headPath, newHeadContent, 0o644); err != nil {
+		return err
+	}
+
+	if err := os.Remove(oldRef); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeleteBranch deletes the branch
