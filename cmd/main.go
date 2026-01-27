@@ -19,53 +19,6 @@ var commands = map[string]CommandFunc{
 			os.Exit(1)
 		}
 	},
-	"add": func(args []string) {
-		if len(args) < 1 {
-			fmt.Println("Usage: kitcat add <file-path>")
-			os.Exit(2)
-		}
-		if args[0] == "-A" || args[0] == "--all" {
-			fmt.Println("Staging all changes...")
-			if err := core.AddAll(); err != nil {
-				fmt.Println("Error:", err)
-				os.Exit(1)
-			}
-			os.Exit(0)
-		}
-		exitCode := 0
-		for _, path := range args {
-			if err := core.AddFile(path); err != nil {
-				fmt.Printf("Error adding %s: %v\n", path, err)
-				exitCode = 1
-			}
-		}
-		os.Exit(exitCode)
-	},
-	"grep": func(args []string) {
-		if err := core.Grep(args); err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
-	},
-
-	"rm": func(args []string) {
-		if len(args) < 1 {
-			fmt.Println("Usage: kitcat rm <file> [file...]")
-			os.Exit(2)
-		}
-
-		exitCode := 0
-		for _, filename := range args {
-			if err := core.RemoveFile(filename); err != nil {
-				fmt.Printf("Error removing '%s': %v\n", filename, err)
-				exitCode = 1
-			} else {
-				fmt.Printf("Removed '%s'\n", filename)
-			}
-		}
-		os.Exit(exitCode)
-	},
 	"commit": func(args []string) {
 		if !core.IsRepoInitialized() {
 			fmt.Println(

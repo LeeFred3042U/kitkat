@@ -224,3 +224,71 @@ func StashClear() error {
 
 	return nil
 }
+
+// StashApply applies the stash at the given index (0 = newest) without removing it from the stack.
+func StashApply(index int) error {
+	if !IsRepoInitialized() {
+		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
+	}
+
+	stashes, err := storage.ListStashes()
+	if err != nil {
+		return fmt.Errorf("failed to list stashes: %w", err)
+	}
+	if index < 0 || index >= len(stashes) {
+		return fmt.Errorf("invalid stash index: %d", index)
+	}
+
+	stashHash := stashes[index]
+	_, err = storage.FindCommit(stashHash)
+	if err != nil {
+		return fmt.Errorf("stash commit not found: %w", err)
+	}
+
+	isDirty, err := IsWorkDirDirty()
+	if err != nil {
+		return fmt.Errorf("failed to check working directory status: %w", err)
+	}
+	if isDirty {
+		return fmt.Errorf("error: your local changes would be overwritten by stash apply\nPlease commit your changes or stash them before you apply")
+	}
+
+	if err := UpdateWorkspaceAndIndex(stashHash); err != nil {
+		return fmt.Errorf("failed to apply stash: %w", err)
+	}
+
+	fmt.Printf("Applied refs/stash@{%d} (%s)\n", index, stashHash[:7])
+	return nil
+}
+
+// StashDrop removes the stash at the given index (0 = newest) from the stack.
+func StashDrop(index int) error {
+	if !IsRepoInitialized() {
+		return fmt.Errorf("fatal: not a kitcat repository (or any of the parent directories): .kitcat")
+	}
+	stashes, err := storage.ListStashes()
+	if err != nil {
+		return fmt.Errorf("failed to list stashes: %w", err)
+	}
+	if index < 0 || index >= len(stashes) {
+		return fmt.Errorf("invalid stash index: %d", index)
+	}
+	// Remove the stash at the given index
+	newStashes := append(stashes[:index], stashes[index+1:]...)
+	// Write the new stash list back to the file (reverse order for storage)
+	f, err := os.OpenFile(".kitcat/stash.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to open stash file: %w", err)
+	}
+	defer f.Close()
+	for i := len(newStashes) - 1; i >= 0; i-- {
+		if _, err := fmt.Fprintln(f, newStashes[i]); err != nil {
+			return fmt.Errorf("failed to write stash: %w", err)
+		}
+	}
+	if err := f.Sync(); err != nil {
+		return fmt.Errorf("failed to sync stash file: %w", err)
+	}
+	fmt.Printf("Dropped refs/stash@{%d}\n", index)
+	return nil
+}
