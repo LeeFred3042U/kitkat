@@ -396,7 +396,7 @@ var commands = map[string]CommandFunc{
 
 		if !force {
 			fmt.Println("This will delete untracked files. Run 'kitcat clean -f' to proceed.")
-			os.Exit(0)
+			os.Exit(1)
 		}
 
 		if err := core.Clean(dryRun, includeIgnored); err != nil {
