@@ -187,13 +187,9 @@ var commands = map[string]CommandFunc{
 	},
 	"diff": func(args []string) {
 		staged := false
-		for _, arg := range args {
-			switch arg {
-			case "--cached", "--staged":
+		if len(args) > 0 {
+			if args[0] == "--cached" || args[0] == "--staged" {
 				staged = true
-			default:
-				fmt.Println("Path filtering not supported")
-				os.Exit(2)
 			}
 		}
 		if err := core.Diff(staged); err != nil {
@@ -396,7 +392,7 @@ var commands = map[string]CommandFunc{
 
 		if !force {
 			fmt.Println("This will delete untracked files. Run 'kitcat clean -f' to proceed.")
-			os.Exit(0)
+			os.Exit(1)
 		}
 
 		if err := core.Clean(dryRun, includeIgnored); err != nil {
